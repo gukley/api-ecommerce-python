@@ -1,5 +1,8 @@
 FROM python:3.9
 
+RUN groupadd --gid 1000 vscode && \
+    useradd --uid 1000 --gid 1000 -m vscode
+
 WORKDIR /app
 
 COPY requirements.txt .

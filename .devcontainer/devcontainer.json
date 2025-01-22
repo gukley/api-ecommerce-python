@@ -3,6 +3,7 @@
   "dockerComposeFile": "../docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/app",
+  "remoteUser": "vscode",
   "customizations": {
     "vscode": {
       "extensions": [

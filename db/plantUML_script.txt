@@ -1,0 +1,136 @@
+@startuml
+title Diagrama de BD: Marketplace (Versão com Múltiplos Descontos e Cupom)
+
+' -----------------------------
+' Configurações de Estilo (Opcional)
+' -----------------------------
+skinparam style strictuml
+hide circle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam class {
+    BackgroundColor #F3F4F9
+    BorderColor #162841
+    FontColor #2E4057
+    ArrowColor #2E4057
+    RoundCorner 15
+    classAttributeIconSize 0
+}
+
+' -----------------------------
+' ENTIDADES (Tabelas)
+' -----------------------------
+class Users {
+    +id : INT PK
+    +name : VARCHAR
+    +email : VARCHAR
+    +password : VARCHAR
+    +role : ENUM('CLIENT','MODERATOR','ADMIN')
+}
+
+class Addresses {
+    +id : INT PK
+    +userId : INT FK
+    +street : VARCHAR
+    +number : INT
+    +zip : VARCHAR
+    +city : VARCHAR
+    +state : VARCHAR
+    +country : VARCHAR
+}
+
+class Categories {
+    +id : INT PK
+    +name : VARCHAR
+    +description : TEXT
+}
+
+class Discounts {
+    +id : INT PK
+    +description : VARCHAR
+    +discountPercentage : DECIMAL(5,2)
+    +startDate : DATE
+    +endDate : DATE
+}
+
+class Coupons {
+    +id : INT PK
+    +code : VARCHAR
+    +discountPercentage : DECIMAL(5,2)
+    +startDate : DATE
+    +endDate : DATE
+}
+
+class Products {
+    +id : INT PK
+    +categoryId : INT FK
+    +name : VARCHAR
+    +price : DECIMAL(10,2)
+    +stock : INT
+}
+
+' Tabela de associação para M:N entre Products e Discounts
+class ProductDiscounts {
+    +id : INT PK
+    +productId : INT FK
+    +discountId : INT FK
+}
+
+class Carts {
+    +id : INT PK
+    +userId : INT FK (UNIQUE)
+    +createdAt : DATETIME
+}
+
+class CartItems {
+    +id : INT PK
+    +cartId : INT FK
+    +productId : INT FK
+    +quantity : INT
+    +unitPrice : DECIMAL(10,2)
+}
+
+class Orders {
+    +id : INT PK
+    +userId : INT FK
+    +addressId : INT FK
+    +couponId : INT FK (nullable)
+    +orderDate : DATETIME
+    +status : ENUM('PENDING','PROCESSING','SHIPPED','COMPLETED','CANCELED')
+    +totalAmount : DECIMAL(10,2)
+}
+
+class OrderItems {
+    +id : INT PK
+    +orderId : INT FK
+    +productId : INT FK
+    +quantity : INT
+    +unitPrice : DECIMAL(10,2)
+}
+
+' -----------------------------
+' RELACIONAMENTOS
+' -----------------------------
+Users "1" -- "N" Addresses : "has"
+
+' Carrinho único por usuário => (1) -- (1)
+Users "1" -- "1" Carts : "has/owns"
+
+Carts "1" -- "N" CartItems : "contains"
+Products "1" -- "N" CartItems : "in"
+
+Users "1" -- "N" Orders : "places"
+Addresses "1" -- "N" Orders : "used_in"
+
+' Pedido pode ou não ter 1 cupom
+Coupons "1" -- "N" Orders : "applied_in" 
+
+Orders "1" -- "N" OrderItems : "includes"
+Products "1" -- "N" OrderItems : "in"
+
+Categories "1" -- "N" Products : "has"
+
+' M:N entre Products e Discounts -> tabela ProductDiscounts
+Products "1" -- "N" ProductDiscounts : "has"
+Discounts "1" -- "N" ProductDiscounts : "applies"
+@enduml
