@@ -8,3 +8,5 @@ pydantic
 email-validator
 pytest
 psycopg2-binary
+python-decouple
+python-jose
