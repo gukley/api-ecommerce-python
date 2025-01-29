@@ -8,7 +8,7 @@ from app.models.user_model import User
 class OrderService:
     @staticmethod
     def create_order(db: Session, order_data: OrderCreate) -> Order:
-        order = Order(**order_data.dict())
+        order = Order(**order_data.model_dump())
         return OrderRepository.create_order(db, order)
 
     @staticmethod

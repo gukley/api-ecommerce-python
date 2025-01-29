@@ -15,14 +15,14 @@ class DiscountService:
 
     @staticmethod
     def create_discount(db: Session, discount_data: DiscountCreate) -> Discount:
-        discount = Discount(**discount_data.dict())
+        discount = Discount(**discount_data.model_dump())
         return DiscountRepository.create_discount(db, discount)
 
     @staticmethod
     def update_discount(
         db: Session, discount_id: int, discount_data: DiscountUpdate
     ) -> Discount:
-        updates = discount_data.dict(exclude_unset=True)
+        updates = discount_data.model_dump(exclude_unset=True)
         return DiscountRepository.update_discount(db, discount_id, updates)
 
     @staticmethod

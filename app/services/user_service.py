@@ -13,7 +13,7 @@ class UserService:
 
     @staticmethod
     def update_user(db: Session, current_user: User, user_data: UserUpdate) -> User:
-        updates = user_data.dict(exclude_unset=True)
+        updates = user_data.model_dump(exclude_unset=True)
         return UserRepository.update_user(db, current_user.id, updates)
 
     @staticmethod
@@ -34,5 +34,5 @@ class UserService:
             raise HTTPException(status_code=400, detail="Email already registered")
 
         user_data.password = hash_password(user_data.password)
-        user = User(**user_data.dict())
+        user = User(**user_data.model_dump())
         return UserRepository.create_user(db, user)

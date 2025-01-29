@@ -15,12 +15,12 @@ class CouponService:
 
     @staticmethod
     def create_coupon(db: Session, coupon_data: CouponCreate) -> Coupon:
-        coupon = Coupon(**coupon_data.dict())
+        coupon = Coupon(**coupon_data.model_dump())
         return CouponRepository.create_coupon(db, coupon)
 
     @staticmethod
     def update_coupon(db: Session, coupon_id: int, coupon_data: CouponUpdate) -> Coupon:
-        updates = coupon_data.dict(exclude_unset=True)
+        updates = coupon_data.model_dump(exclude_unset=True)
         return CouponRepository.update_coupon(db, coupon_id, updates)
 
     @staticmethod

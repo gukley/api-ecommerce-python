@@ -15,7 +15,7 @@ class AddressService:
     def create_address(
         db: Session, address_data: AddressCreate, current_user: User
     ) -> Address:
-        address = Address(**address_data.dict())
+        address = Address(**address_data.model_dump())
         address.user_id = current_user.id
         return AddressRepository.create_address(db, address)
 
@@ -33,7 +33,7 @@ class AddressService:
                 status_code=403, detail="Not authorized to update this address"
             )
 
-        updates = address_data.dict(exclude_unset=True)
+        updates = address_data.model_dump(exclude_unset=True)
         return AddressRepository.update_address(db, address_id, updates)
 
     @staticmethod

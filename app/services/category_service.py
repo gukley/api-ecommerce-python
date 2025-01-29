@@ -15,14 +15,14 @@ class CategoryService:
 
     @staticmethod
     def create_category(db: Session, category_data: CategoryCreate) -> Category:
-        category = Category(**category_data.dict())
+        category = Category(**category_data.model_dump())
         return CategoryRepository.create_category(db, category)
 
     @staticmethod
     def update_category(
         db: Session, category_id: int, category_data: CategoryUpdate
     ) -> Category:
-        updates = category_data.dict(exclude_unset=True)
+        updates = category_data.model_dump(exclude_unset=True)
         return CategoryRepository.update_category(db, category_id, updates)
 
     @staticmethod
