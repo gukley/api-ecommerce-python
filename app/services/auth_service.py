@@ -15,7 +15,7 @@ class AuthService:
         if not user or not verify_password(password, user.password):
             raise HTTPException(status_code=401, detail="Invalid email or password")
 
-        token_data = {"sub": user.email, "role": user.role.value}
+        token_data = {"sub": str(user.id), "role": user.role.value}
         token = create_access_token(token_data)
         return {"token": token, "user": user}
 
@@ -31,6 +31,6 @@ class AuthService:
 
     @staticmethod
     def renew_token(current_user: User) -> str:
-        token_data = {"sub": current_user.email, "role": current_user.role.value}
+        token_data = {"sub": str(current_user.id), "role": current_user.role.value}
         new_token = create_access_token(token_data)
         return new_token

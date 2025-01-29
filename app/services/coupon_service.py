@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 from app.repositories.coupon_repository import CouponRepository
 from app.models.coupon_model import Coupon
 from app.schemas.coupon_schema import CouponCreate, CouponUpdate
@@ -16,11 +17,23 @@ class CouponService:
     @staticmethod
     def create_coupon(db: Session, coupon_data: CouponCreate) -> Coupon:
         coupon = Coupon(**coupon_data.model_dump())
+
+        if CouponRepository.get_coupon_by_code(db, coupon.code):
+            raise HTTPException(status_code=400, detail="Coupon code already exists")
+
         return CouponRepository.create_coupon(db, coupon)
 
     @staticmethod
     def update_coupon(db: Session, coupon_id: int, coupon_data: CouponUpdate) -> Coupon:
         updates = coupon_data.model_dump(exclude_unset=True)
+        coupon = CouponRepository.get_coupon_by_id(db, coupon_id)
+        if not coupon:
+            raise HTTPException(status_code=404, detail="Coupon not found")
+
+        coupon = CouponRepository.get_coupon_by_code(db, coupon_data.code)
+        if coupon:
+            raise HTTPException(status_code=400, detail="Coupon code already exists")
+
         return CouponRepository.update_coupon(db, coupon_id, updates)
 
     @staticmethod

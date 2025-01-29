@@ -1,13 +1,14 @@
 from sqlalchemy.orm import Session
 from app.models.category_model import Category
 
+
 class CategoryRepository:
     @staticmethod
     def get_all_categories(db: Session) -> list[Category]:
         return db.query(Category).all()
 
     @staticmethod
-    def get_categories_by_id(db: Session, category_id: int) -> Category:
+    def get_category_by_id(db: Session, category_id: int) -> Category:
         return db.query(Category).filter(Category.id == category_id).first()
 
     @staticmethod

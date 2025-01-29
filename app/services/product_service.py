@@ -1,7 +1,9 @@
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 from app.repositories.product_repository import ProductRepository
 from app.models.product_model import Product
 from app.schemas.product_schema import ProductCreate, ProductUpdate, ProductUpdateStock
+from app.repositories.category_repository import CategoryRepository
 
 
 class ProductService:
@@ -16,6 +18,11 @@ class ProductService:
     @staticmethod
     def create_product(db: Session, product_data: ProductCreate) -> Product:
         product = Product(**product_data.model_dump())
+
+        category = CategoryRepository.get_category_by_id(db, product.category_id)
+        if not category:
+            raise HTTPException(status_code=404, detail="Category not found")
+
         return ProductRepository.create_product(db, product)
 
     @staticmethod
@@ -23,14 +30,27 @@ class ProductService:
         db: Session, product_id: int, product_data: ProductUpdate
     ) -> Product:
         updates = product_data.model_dump(exclude_unset=True)
-        return ProductRepository.update_product(db, product_id, updates)
+
+        category = CategoryRepository.get_category_by_id(db, product_data.category_id)
+        if not category:
+            raise HTTPException(status_code=404, detail="Category not found")
+
+        product = ProductRepository.update_product(db, product_id, updates)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+
+        return product
 
     @staticmethod
     def update_stock(
         db: Session, product_id: int, new_stock: ProductUpdateStock
     ) -> Product:
         updates = new_stock.model_dump(exclude_unset=True)
-        return ProductRepository.update_stock(db, product_id, updates)
+        product = ProductRepository.update_stock(db, product_id, updates["stock"])
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+
+        return product
 
     @staticmethod
     def delete_product(db: Session, product_id: int):

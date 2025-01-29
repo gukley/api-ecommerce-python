@@ -3,8 +3,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.category_schema import CategoryCreate, CategoryResponse, CategoryUpdate
 from app.services.category_service import CategoryService
-from app.core.middlewares.auth_middleware import get_current_user
-from app.models.user_model import UserRole, User
+from app.models.user_model import User
 from app.dependencies.auth import is_admin
 
 router = APIRouter()

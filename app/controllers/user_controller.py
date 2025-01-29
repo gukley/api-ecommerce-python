@@ -20,10 +20,7 @@ def update_me(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    updated_user = UserService.update_user(db, current_user, user_data)
-    if not updated_user:
-        raise HTTPException(status_code=404, detail="User not found")
-    return UserResponse.from_orm(updated_user)
+    return UserService.update_user(db, current_user, user_data)
 
 
 @router.delete("/me", status_code=204)

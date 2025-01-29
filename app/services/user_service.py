@@ -12,8 +12,19 @@ class UserService:
         return UserRepository.get_user_by_email(db, email)
 
     @staticmethod
+    def get_user_by_id(db: Session, user_id: int) -> User:
+        return UserRepository.get_user_by_id(db, user_id)
+
+    @staticmethod
     def update_user(db: Session, current_user: User, user_data: UserUpdate) -> User:
         updates = user_data.model_dump(exclude_unset=True)
+        if "email" in updates and updates["email"] != current_user.email:
+            existing_user = (
+                db.query(User).filter(User.email == updates["email"]).first()
+            )
+        if existing_user:
+            raise HTTPException(status_code=400, detail="Email already registered")
+
         return UserRepository.update_user(db, current_user.id, updates)
 
     @staticmethod
@@ -24,7 +35,7 @@ class UserService:
     def create_moderator(
         db: Session, user_data: UserCreateModerator, current_user: User
     ) -> User:
-        if current_user.role != UserRole.ADMIN.value:
+        if current_user.role.value != UserRole.ADMIN.value:
             raise HTTPException(
                 status_code=403, detail="Not authorized to create a moderator"
             )

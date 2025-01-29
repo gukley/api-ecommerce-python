@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from fastapi import HTTPException
 from app.repositories.category_repository import CategoryRepository
 from app.models.category_model import Category
 from app.schemas.category_schema import CategoryCreate, CategoryUpdate
@@ -10,8 +11,8 @@ class CategoryService:
         return CategoryRepository.get_all_categories(db)
 
     @staticmethod
-    def get_categorie_by_id(db: Session, category_id: int) -> Category:
-        return CategoryRepository.get_categories_by_id(db, category_id)
+    def get_category_by_id(db: Session, category_id: int) -> Category:
+        return CategoryRepository.get_category_by_id(db, category_id)
 
     @staticmethod
     def create_category(db: Session, category_data: CategoryCreate) -> Category:
@@ -23,7 +24,12 @@ class CategoryService:
         db: Session, category_id: int, category_data: CategoryUpdate
     ) -> Category:
         updates = category_data.model_dump(exclude_unset=True)
-        return CategoryRepository.update_category(db, category_id, updates)
+        category = CategoryRepository.update_category(db, category_id, updates)
+
+        if not category:
+            raise HTTPException(status_code=404, detail="Category not found")
+
+        return category
 
     @staticmethod
     def delete_category(db: Session, category_id: int):

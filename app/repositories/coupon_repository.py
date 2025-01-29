@@ -12,6 +12,10 @@ class CouponRepository:
         return db.query(Coupon).all()
 
     @staticmethod
+    def get_coupon_by_code(db: Session, coupon_code: str) -> Coupon:
+        return db.query(Coupon).filter(Coupon.code == coupon_code).first()
+
+    @staticmethod
     def create_coupon(db: Session, coupon: Coupon) -> Coupon:
         db.add(coupon)
         db.commit()
