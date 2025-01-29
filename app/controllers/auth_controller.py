@@ -5,6 +5,7 @@ from app.schemas.user_schema import UserCreate, UserResponse
 from app.services.auth_service import AuthService
 from app.core.middlewares.auth_middleware import get_current_user
 from app.schemas.login_schema import LoginRequest, LoginResponse
+from app.models.user_model import User
 
 router = APIRouter()
 
@@ -22,6 +23,6 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/renew-token", summary="Renew authentication token")
-def renew_token(current_user: dict = Depends(get_current_user)):
+def renew_token(current_user: User = Depends(get_current_user)):
     new_token = AuthService.renew_token(current_user)
     return {"new_token": new_token}
