@@ -19,8 +19,9 @@ class CartItemRemove(CartItemBase):
     pass
 
 
-class CartItemUpdate(CartItemBase):
-    quantity: Optional[int] = None
+class CartItemUpdate(BaseModel):
+    product_id: int
+    quantity: int
 
 
 class CartItemResponse(CartItemBase):

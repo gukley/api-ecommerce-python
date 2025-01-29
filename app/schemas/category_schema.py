@@ -11,7 +11,7 @@ class CategoryCreate(CategoryBase):
     pass
 
 
-class CategoryUpdate(CategoryBase):
+class CategoryUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
 

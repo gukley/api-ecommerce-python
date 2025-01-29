@@ -18,7 +18,7 @@ class OrderCreate(OrderBase):
     pass
 
 
-class OrderUpdate(OrderBase):
+class OrderUpdate(BaseModel):
     status: Optional[OrderStatus] = None
 
 

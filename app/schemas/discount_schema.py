@@ -16,7 +16,7 @@ class DiscountCreate(DiscountBase):
     pass
 
 
-class DiscountUpdate(DiscountBase):
+class DiscountUpdate(BaseModel):
     description: Optional[str] = None
     discount_percentage: Optional[
         Annotated[Decimal, Field(max_digits=5, decimal_places=2)]

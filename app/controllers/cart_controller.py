@@ -9,6 +9,7 @@ from app.schemas.cart_item_schema import (
     CartItemCreate,
     CartItemResponse,
     CartItemRemove,
+    CartItemUpdate,
 )
 
 router = APIRouter()
@@ -61,4 +62,14 @@ def clear_cart(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     CartService.clear_cart(db, current_user)
+    return
+
+
+@router.put("/items", status_code=204)
+def update_cart_items(
+    cart_item: CartItemUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    CartService.update_item_quantity(db, cart_item, current_user)
     return

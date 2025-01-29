@@ -15,7 +15,7 @@ class AddressCreate(AddressBase):
     pass
 
 
-class AddressUpdate(AddressBase):
+class AddressUpdate(BaseModel):
     street: Optional[str] = None
     number: Optional[int] = None
     zip: Optional[str] = None

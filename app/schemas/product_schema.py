@@ -21,7 +21,7 @@ class ProductUpdate(ProductBase):
     category_id: Optional[int] = None
 
 
-class ProductUpdateStock(ProductBase):
+class ProductUpdateStock(BaseModel):
     stock: Optional[int] = None
 
 

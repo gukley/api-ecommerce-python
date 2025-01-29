@@ -41,3 +41,26 @@ class CartRepository:
     def clear_cart(db: Session, cart_id: int):
         db.query(CartItem).filter(CartItem.cart_id == cart_id).delete()
         db.commit()
+
+    @staticmethod
+    def get_cart_item_by_product_id(
+        db: Session, product_id: int, cart_id: int
+    ) -> CartItem:
+        return (
+            db.query(CartItem)
+            .filter(CartItem.cart_id == cart_id, CartItem.product_id == product_id)
+            .first()
+        )
+
+    @staticmethod
+    def update_item_quantity(db: Session, cart_id: int, product_id: int, quantity: int):
+        cart_item = (
+            db.query(CartItem)
+            .filter(CartItem.cart_id == cart_id, CartItem.product_id == product_id)
+            .first()
+        )
+        if cart_item:
+            cart_item.quantity = quantity
+            db.commit()
+            db.refresh(cart_item)
+            return cart_item

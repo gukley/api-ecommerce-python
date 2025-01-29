@@ -4,7 +4,7 @@ from app.repositories.cart_repository import CartRepository
 from app.models.cart_model import Cart
 from app.schemas.cart_schema import CartCreate
 from app.models.user_model import User
-from app.schemas.cart_item_schema import CartItemCreate, CartItemRemove
+from app.schemas.cart_item_schema import CartItemCreate, CartItemRemove, CartItemUpdate
 from app.models.cart_item_model import CartItem
 
 
@@ -51,3 +51,13 @@ class CartService:
         cart = CartRepository.get_cart_by_user(db, user.id)
         if cart:
             CartRepository.clear_cart(db, cart.id)
+
+    @staticmethod
+    def update_item_quantity(db: Session, cart_item: CartItemUpdate, user: User):
+        cart = CartRepository.get_cart_by_user(db, user.id)
+        if not cart:
+            return HTTPException(status_code=404, detail="Cart not found")
+
+        CartRepository.update_item_quantity(
+            db, cart, cart_item.product_id, cart_item.quantity
+        )
