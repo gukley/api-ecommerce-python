@@ -1,16 +1,17 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.cart_schema import CartCreate, CartResponse
+from app.schemas.cart_schema import CartResponse
 from app.services.cart_service import CartService
 from app.core.middlewares.auth_middleware import get_current_user
 from app.models.user_model import User
 from app.schemas.cart_item_schema import (
     CartItemCreate,
-    CartItemResponse,
     CartItemRemove,
     CartItemUpdate,
 )
+
+from app.schemas.cart_schema import CartItemsResponse
 
 router = APIRouter()
 
@@ -22,14 +23,14 @@ def get_cart(
     return CartService.get_cart_by_user(db, current_user)
 
 
-@router.get("/items", response_model=list[CartItemResponse])
+@router.get("/items", response_model=CartItemsResponse)
 def get_cart_items(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     return CartService.get_cart_items(db, current_user)
 
 
-@router.post("/items/", status_code=204)
+@router.post("/items", status_code=204)
 def add_item_to_cart(
     cart_item: CartItemCreate,
     db: Session = Depends(get_db),
@@ -40,11 +41,10 @@ def add_item_to_cart(
 
 @router.post("/", response_model=CartResponse)
 def create_cart(
-    cart_data: CartCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return CartService.create_cart(db, cart_data, current_user)
+    return CartService.create_cart(db, current_user)
 
 
 @router.delete("/items", status_code=204)
