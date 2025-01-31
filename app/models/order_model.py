@@ -17,7 +17,9 @@ class Order(Base):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(
+        Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
     address_id = Column(Integer, ForeignKey("addresses.id"), nullable=False)
     coupon_id = Column(Integer, ForeignKey("coupons.id"), nullable=True)
     order_date = Column(DateTime, nullable=False, default=datetime.utcnow)
