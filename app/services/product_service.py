@@ -24,7 +24,7 @@ class ProductService:
             raise HTTPException(status_code=404, detail="Product not found")
 
         total_discount = sum(
-            discount.discount_percentage for discount in product.discounts
+            discount.discount_percentage for discount in product.product_discounts
         )
 
         discounted_price = max(

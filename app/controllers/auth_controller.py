@@ -17,7 +17,12 @@ def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     return AuthService.authenticate_user(db, login_data.email, login_data.password)
 
 
-@router.post("/register", summary="Register a new user", response_model=UserResponse)
+@router.post(
+    "/register",
+    summary="Register a new user",
+    response_model=UserResponse,
+    status_code=201,
+)
 def register(user_data: UserCreate, db: Session = Depends(get_db)):
     return AuthService.register_user(db, user_data)
 

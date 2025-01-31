@@ -59,7 +59,9 @@ class CartService:
             raise HTTPException(status_code=400, detail="Not enough stock")
 
         cart_item = CartItem(
-            **cart_item.model_dump(), unit_price=product.price, cart_id=cart.id
+            **cart_item.model_dump(exclude={"unit_price"}),
+            unit_price=product.price,
+            cart_id=cart.id
         )
 
         CartRepository.add_item_to_cart(db, cart_item)
