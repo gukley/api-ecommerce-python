@@ -8,8 +8,12 @@ class AddressRepository:
         return db.query(Address).filter(Address.user_id == user_id).all()
 
     @staticmethod
-    def get_address_by_id(db: Session, address_id: int) -> Address:
-        return db.query(Address).filter(Address.id == address_id).first()
+    def get_address_by_id(db: Session, address_id: int, user_id: int) -> Address:
+        return (
+            db.query(Address)
+            .filter(Address.id == address_id, Address.user_id == user_id)
+            .first()
+        )
 
     @staticmethod
     def create_address(db: Session, address: Address) -> Address:

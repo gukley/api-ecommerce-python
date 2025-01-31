@@ -16,6 +16,15 @@ def get_addresses(
     return AddressService.get_addresses_by_user(db, current_user)
 
 
+@router.get("/{address_id}", response_model=AddressResponse)
+def get_address(
+    address_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return AddressService.get_address_by_id(db, current_user, address_id)
+
+
 @router.post("/", response_model=AddressResponse)
 def create_address(
     address_data: AddressCreate,

@@ -11,7 +11,7 @@ from app.schemas.cart_item_schema import (
 )
 from app.schemas.cart_schema import CartItemsResponse
 from app.models.cart_item_model import CartItem
-from app.repositories.product_repository import ProductRepository
+from app.services.product_service import ProductService
 
 
 class CartService:
@@ -27,16 +27,15 @@ class CartService:
         cart = CartRepository.get_cart_by_user(db, user.id)
         if not cart:
             raise HTTPException(status_code=404, detail="Cart not found")
-        cart_items = CartRepository.get_cart_items(db, cart.id)
 
         total = 0
         items = []
 
-        for item in cart_items:
+        for item in cart.cart_items:
             total += item.quantity * item.unit_price
             items.append(CartItemResponse.model_validate(item.__dict__))
 
-        return CartItemsResponse(items=items, total=total)
+        return CartItemsResponse(cart_id=cart.id, items=items, total_amount=total)
 
     @staticmethod
     def create_cart(db: Session, user: User) -> Cart:
@@ -52,7 +51,7 @@ class CartService:
         if not cart:
             raise HTTPException(status_code=404, detail="Cart not found")
 
-        product = ProductRepository.get_product_by_id(db, cart_item.product_id)
+        product = ProductService.get_product_by_id(db, cart_item.product_id)
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")
 

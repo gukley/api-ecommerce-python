@@ -8,7 +8,8 @@ class CartBase(BaseModel):
 
 
 class CartItemsResponse(BaseModel):
-    total: float
+    cart_id: int
+    total_amount: float
     items: list[CartItemResponse]
 
 

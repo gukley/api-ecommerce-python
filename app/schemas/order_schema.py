@@ -7,11 +7,8 @@ from decimal import Decimal
 
 
 class OrderBase(BaseModel):
-    user_id: int
     address_id: int
     coupon_id: Optional[int] = None
-    status: OrderStatus
-    total_amount: Annotated[Decimal, Field(max_digits=10, decimal_places=2)]
 
 
 class OrderCreate(OrderBase):
@@ -25,6 +22,7 @@ class OrderUpdate(BaseModel):
 class OrderResponse(OrderBase):
     id: int
     order_date: datetime
+    status: OrderStatus
 
     class Config:
         model_config = {"from_attributes": True}

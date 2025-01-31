@@ -16,6 +16,11 @@ class CouponService:
 
     @staticmethod
     def create_coupon(db: Session, coupon_data: CouponCreate) -> Coupon:
+        if coupon_data.discount_percentage > 100 or coupon_data.discount_percentage < 1:
+            raise HTTPException(
+                status_code=400, detail="Discount percentage must be between 1 and 100"
+            )
+
         coupon = Coupon(**coupon_data.model_dump())
 
         if CouponRepository.get_coupon_by_code(db, coupon.code):

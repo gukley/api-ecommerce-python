@@ -12,6 +12,10 @@ class AddressService:
         return AddressRepository.get_addresses_by_user(db, current_user.id)
 
     @staticmethod
+    def get_address_by_id(db: Session, current_user: User, address_id: int) -> Address:
+        return AddressRepository.get_address_by_id(db, address_id, current_user.id)
+
+    @staticmethod
     def create_address(
         db: Session, address_data: AddressCreate, current_user: User
     ) -> Address:

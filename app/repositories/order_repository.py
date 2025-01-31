@@ -13,6 +13,11 @@ class OrderRepository:
         return order
 
     @staticmethod
+    def create_order_items(db: Session, order_items: list[OrderItem]):
+        db.add_all(order_items)
+        db.commit()
+
+    @staticmethod
     def get_orders_by_user(db: Session, user_id: int) -> list[Order]:
         return db.query(Order).filter(Order.user_id == user_id).all()
 
@@ -33,7 +38,7 @@ class OrderRepository:
             .filter(Order.id == order_id, Order.user_id == user_id)
             .first()
         )
-        if order:
+        if order and order.status != OrderStatus.CANCELED:
             order.status = new_status
             db.commit()
             db.refresh(order)

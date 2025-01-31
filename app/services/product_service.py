@@ -2,7 +2,12 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.repositories.product_repository import ProductRepository
 from app.models.product_model import Product
-from app.schemas.product_schema import ProductCreate, ProductUpdate, ProductUpdateStock
+from app.schemas.product_schema import (
+    ProductResponse,
+    ProductCreate,
+    ProductUpdate,
+    ProductUpdateStock,
+)
 from app.repositories.category_repository import CategoryRepository
 
 
@@ -12,8 +17,27 @@ class ProductService:
         return ProductRepository.get_all_products(db)
 
     @staticmethod
-    def get_product_by_id(db: Session, product_id: int) -> Product:
-        return ProductRepository.get_product_by_id(db, product_id)
+    def get_product_by_id(db: Session, product_id: int) -> ProductResponse:
+        product = ProductRepository.get_product_by_id(db, product_id)
+
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+
+        total_discount = sum(
+            discount.discount_percentage for discount in product.discounts
+        )
+
+        discounted_price = max(
+            product.price - (product.price * total_discount / 100), 0
+        )
+
+        return ProductResponse(
+            id=product.id,
+            category_id=product.category_id,
+            name=product.name,
+            price=product.price - discounted_price,
+            stock=product.stock,
+        )
 
     @staticmethod
     def create_product(db: Session, product_data: ProductCreate) -> Product:
