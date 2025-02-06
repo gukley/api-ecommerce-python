@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime, DECIMAL
+from sqlalchemy import Column, Integer, String, DateTime, DECIMAL, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime
@@ -12,5 +12,6 @@ class Discount(Base):
     discount_percentage = Column(DECIMAL(5, 2), nullable=False)
     start_date = Column(DateTime, nullable=False, default=datetime.utcnow)
     end_date = Column(DateTime, nullable=False)
+    product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"))
 
-    product_discounts = relationship("ProductDiscount", back_populates="discount")
+    product = relationship("Product", back_populates="discounts")

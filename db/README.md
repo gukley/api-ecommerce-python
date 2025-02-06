@@ -10,13 +10,11 @@
 4. [Discounts (Descontos Administrativos)](#4-discounts-descontos-administrativos)  
 5. [Coupons (Cupons)](#5-coupons-cupons)  
 6. [Products (Produtos)](#6-products-produtos)  
-7. [ProductDiscounts (Associação MN)](#7-productdiscounts-associação-mn)  
-8. [Carts (Carrinho)](#8-carts-carrinho)  
-9. [CartItems (Itens do Carrinho)](#9-cartitems-itens-do-carrinho)  
-10. [Orders (Pedidos)](#10-orders-pedidos)  
-11. [OrderItems (Itens do Pedido)](#11-orderitems-itens-do-pedido)  
-12. [Observações e Boas Práticas](#observações-e-boas-práticas)  
-13. [Conclusão](#conclusão)
+7. [Carts (Carrinho)](#7-carts-carrinho)  
+8. [CartItems (Itens do Carrinho)](#8-cartitems-itens-do-carrinho)  
+9. [Orders (Pedidos)](#9-orders-pedidos)  
+10. [OrderItems (Itens do Pedido)](#10-orderitems-itens-do-pedido)  
+
 
 ---
 
@@ -73,8 +71,7 @@
 - **startDate, endDate** — Vigência do desconto.
 
 **Relacionamentos:**
-- **M:N** com **Products**, usando a tabela intermediária **ProductDiscounts**.  
-  (Serve para promoções gerais definidas pelo admin ou moderator.)
+- **M:1** com **Products**
 
 ---
 
@@ -103,23 +100,10 @@
 **Relacionamentos:**
 - **1:N** com **CartItems**.
 - **1:N** com **OrderItems**.
-- **1:N** com **ProductDiscounts** (para associar vários descontos a um produto).
 
 ---
 
-## 7. ProductDiscounts (Associação M:N)
-
-**Atributos:**
-- **id (PK)**
-- **productId (FK)**
-- **discountId (FK)**
-
-**Objetivo:**  
-Permitir que cada produto tenha múltiplos descontos. A aplicação decide como somar ou combinar esses descontos.
-
----
-
-## 8. Carts (Carrinho)
+## 7. Carts (Carrinho)
 
 **Atributos:**
 - **id (PK)**
@@ -132,7 +116,7 @@ Permitir que cada produto tenha múltiplos descontos. A aplicação decide como 
 
 ---
 
-## 9. CartItems (Itens do Carrinho)
+## 8. CartItems (Itens do Carrinho)
 
 **Atributos:**
 - **id (PK)**
@@ -147,7 +131,7 @@ Permitir que cada produto tenha múltiplos descontos. A aplicação decide como 
 
 ---
 
-## 10. Orders (Pedidos)
+## 9. Orders (Pedidos)
 
 **Atributos:**
 - **id (PK)**
@@ -166,7 +150,7 @@ Permitir que cada produto tenha múltiplos descontos. A aplicação decide como 
 
 ---
 
-## 11. OrderItems (Itens do Pedido)
+## 10. OrderItems (Itens do Pedido)
 
 **Atributos:**
 - **id (PK)**

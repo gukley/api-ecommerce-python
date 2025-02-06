@@ -24,7 +24,7 @@ class ProductService:
             raise HTTPException(status_code=404, detail="Product not found")
 
         total_discount = sum(
-            discount.discount_percentage for discount in product.product_discounts
+            discount.discount_percentage for discount in product.discounts
         )
 
         discounted_price = max(
@@ -33,10 +33,11 @@ class ProductService:
 
         return ProductResponse(
             id=product.id,
-            category_id=product.category_id,
+            category=product.category,
             name=product.name,
             price=product.price - discounted_price,
             stock=product.stock,
+            discounts=product.discounts,
         )
 
     @staticmethod

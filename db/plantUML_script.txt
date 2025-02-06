@@ -69,13 +69,6 @@ class Products {
     +stock : INT
 }
 
-' Tabela de associação para M:N entre Products e Discounts
-class ProductDiscounts {
-    +id : INT PK
-    +productId : INT FK
-    +discountId : INT FK
-}
-
 class Carts {
     +id : INT PK
     +userId : INT FK (UNIQUE)
@@ -130,7 +123,5 @@ Products "1" -- "N" OrderItems : "in"
 
 Categories "1" -- "N" Products : "has"
 
-' M:N entre Products e Discounts -> tabela ProductDiscounts
-Products "1" -- "N" ProductDiscounts : "has"
-Discounts "1" -- "N" ProductDiscounts : "applies"
+Products "1" -- "N" Discounts : "has"
 @enduml

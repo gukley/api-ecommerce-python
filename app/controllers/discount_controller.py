@@ -3,8 +3,6 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.discount_schema import DiscountCreate, DiscountResponse, DiscountUpdate
 from app.services.discount_service import DiscountService
-from app.core.middlewares.auth_middleware import get_current_user
-from app.models.user_model import UserRole
 from app.dependencies.auth import is_admin
 
 router = APIRouter()

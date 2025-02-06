@@ -10,6 +10,7 @@ class DiscountBase(BaseModel):
     discount_percentage: Annotated[Decimal, Field(max_digits=5, decimal_places=2)]
     start_date: datetime
     end_date: datetime
+    product_id: int
 
 
 class DiscountCreate(DiscountBase):
@@ -23,6 +24,7 @@ class DiscountUpdate(BaseModel):
     ] = None
     start_date: Optional[datetime] = None
     end_date: Optional[datetime] = None
+    product_id: Optional[int] = None
 
 
 class DiscountResponse(DiscountBase):

@@ -6,13 +6,13 @@ from sqlalchemy.orm import joinedload
 class ProductRepository:
     @staticmethod
     def get_all_products(db: Session) -> list[Product]:
-        return db.query(Product).options(joinedload(Product.product_discounts)).all()
+        return db.query(Product).options(joinedload(Product.discounts)).all()
 
     @staticmethod
     def get_product_by_id(db: Session, product_id: int) -> Product:
         return (
             db.query(Product)
-            .options(joinedload(Product.product_discounts))
+            .options(joinedload(Product.discounts))
             .filter(Product.id == product_id)
             .first()
         )
