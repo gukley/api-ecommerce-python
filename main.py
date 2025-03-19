@@ -1,10 +1,21 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 from app.router import api_router
 from fastapi.openapi.utils import get_openapi
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(debug=True)
 
 app.include_router(api_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def custom_openapi():
