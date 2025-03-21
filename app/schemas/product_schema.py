@@ -11,6 +11,7 @@ class ProductBase(BaseModel):
     price: Annotated[Decimal, Field(max_digits=10, decimal_places=2)]
     stock: int
     category_id: int
+    image_path: Optional[str] = None
 
 
 class ProductCreate(ProductBase):

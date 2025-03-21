@@ -13,6 +13,7 @@ class Product(Base):
     name = Column(String(200), nullable=False)
     price = Column(DECIMAL(10, 2), nullable=False)
     stock = Column(Integer, nullable=False)
+    image_path = Column(String(200), nullable=True)
 
     category = relationship("Category", back_populates="products")
     cart_items = relationship("CartItem", back_populates="product")
