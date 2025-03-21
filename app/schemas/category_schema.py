@@ -18,6 +18,7 @@ class CategoryUpdate(BaseModel):
 
 class CategoryResponse(CategoryBase):
     id: int
+    user_id: int
 
     class Config:
         model_config = {"from_attributes": True}

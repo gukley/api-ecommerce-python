@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from app.repositories.category_repository import CategoryRepository
 from app.models.category_model import Category
 from app.schemas.category_schema import CategoryCreate, CategoryUpdate
+from app.models.user_model import User
 
 
 class CategoryService:
@@ -11,12 +12,19 @@ class CategoryService:
         return CategoryRepository.get_all_categories(db)
 
     @staticmethod
+    def get_all_categories_by_user(db: Session, user_id: int) -> list[Category]:
+        return CategoryRepository.get_all_categories_by_user(db, user_id)
+
+    @staticmethod
     def get_category_by_id(db: Session, category_id: int) -> Category:
         return CategoryRepository.get_category_by_id(db, category_id)
 
     @staticmethod
-    def create_category(db: Session, category_data: CategoryCreate) -> Category:
+    def create_category(
+        db: Session, category_data: CategoryCreate, current_user: User
+    ) -> Category:
         category = Category(**category_data.model_dump())
+        category.user_id = current_user.id
         return CategoryRepository.create_category(db, category)
 
     @staticmethod

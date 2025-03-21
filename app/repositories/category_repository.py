@@ -8,6 +8,10 @@ class CategoryRepository:
         return db.query(Category).all()
 
     @staticmethod
+    def get_all_categories_by_user(db: Session, user_id: int) -> list[Category]:
+        return db.query(Category).filter(Category.user_id == user_id).all()
+
+    @staticmethod
     def get_category_by_id(db: Session, category_id: int) -> Category:
         return db.query(Category).filter(Category.id == category_id).first()
 

@@ -9,6 +9,25 @@ class ProductRepository:
         return db.query(Product).options(joinedload(Product.discounts)).all()
 
     @staticmethod
+    def get_all_products_by_user(db: Session, user_id: int) -> list[Product]:
+        return (
+            db.query(Product)
+            .join(Product.category)
+            .options(joinedload(Product.discounts), joinedload(Product.category))
+            .filter(Product.category.has(user_id=user_id))
+            .all()
+        )
+
+    @staticmethod
+    def get_product_by_category(db: Session, category_id: int) -> list[Product]:
+        return (
+            db.query(Product)
+            .options(joinedload(Product.discounts))
+            .filter(Product.category_id == category_id)
+            .all()
+        )
+
+    @staticmethod
     def get_product_by_id(db: Session, product_id: int) -> Product:
         return (
             db.query(Product)

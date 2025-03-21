@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.order_schema import OrderCreate, OrderResponse, OrderUpdate
@@ -9,14 +9,25 @@ from app.models.user_model import User
 router = APIRouter()
 
 
-@router.get("/", response_model=list[OrderResponse])
+@router.get(
+    "/",
+    response_model=list[OrderResponse],
+    summary="Obter todos os pedidos do usuário",
+    description="Retorna uma lista contendo todos os pedidos feitos pelo usuário autenticado.",
+)
 def get_orders(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     return OrderService.get_orders_by_user(db, current_user)
 
 
-@router.get("/{order_id}", response_model=OrderResponse)
+@router.get(
+    "/{order_id}",
+    response_model=OrderResponse,
+    summary="Obter um pedido específico",
+    description="Retorna detalhes de um pedido específico com base no seu ID, desde que pertença ao usuário autenticado.",
+    responses={404: {"description": "Pedido não encontrado"}},
+)
 def get_order(
     order_id: int,
     db: Session = Depends(get_db),
@@ -24,11 +35,17 @@ def get_order(
 ):
     order = OrderService.get_order_by_id(db, order_id, current_user)
     if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
+        raise HTTPException(status_code=404, detail="Pedido não encontrado")
     return order
 
 
-@router.post("/", response_model=OrderResponse)
+@router.post(
+    "/",
+    response_model=OrderResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Criar um novo pedido",
+    description="Cria um novo pedido para o usuário autenticado.",
+)
 def create_order(
     order_data: OrderCreate,
     db: Session = Depends(get_db),
@@ -37,7 +54,13 @@ def create_order(
     return OrderService.create_order(db, order_data, current_user)
 
 
-@router.put("/{order_id}", response_model=OrderResponse)
+@router.put(
+    "/{order_id}",
+    response_model=OrderResponse,
+    summary="Atualizar status de um pedido",
+    description="Atualiza o status de um pedido específico com base no seu ID, desde que pertença ao usuário autenticado.",
+    responses={404: {"description": "Pedido não encontrado"}},
+)
 def update_order(
     order_id: int,
     order_data: OrderUpdate,
@@ -49,7 +72,13 @@ def update_order(
     )
 
 
-@router.delete("/{order_id}", status_code=204)
+@router.delete(
+    "/{order_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Cancelar um pedido",
+    description="Cancela um pedido específico com base no seu ID, desde que pertença ao usuário autenticado.",
+    responses={404: {"description": "Pedido não encontrado"}},
+)
 def cancel_order(
     order_id: int,
     db: Session = Depends(get_db),

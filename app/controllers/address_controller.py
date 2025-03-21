@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.address_schema import AddressCreate, AddressResponse, AddressUpdate
@@ -9,23 +9,43 @@ from app.models.user_model import User
 router = APIRouter()
 
 
-@router.get("/", response_model=list[AddressResponse])
+@router.get(
+    "/",
+    response_model=list[AddressResponse],
+    summary="Obter todos os endereços do usuário",
+    description="Retorna todos os endereços cadastrados pelo usuário autenticado.",
+)
 def get_addresses(
     db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
 ):
     return AddressService.get_addresses_by_user(db, current_user)
 
 
-@router.get("/{address_id}", response_model=AddressResponse)
+@router.get(
+    "/{address_id}",
+    response_model=AddressResponse,
+    summary="Obter um endereço específico",
+    description="Retorna detalhes de um endereço específico com base no seu ID, desde que pertença ao usuário autenticado.",
+    responses={404: {"description": "Endereço não encontrado"}},
+)
 def get_address(
     address_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return AddressService.get_address_by_id(db, current_user, address_id)
+    address = AddressService.get_address_by_id(db, current_user, address_id)
+    if not address:
+        raise HTTPException(status_code=404, detail="Endereço não encontrado")
+    return address
 
 
-@router.post("/", response_model=AddressResponse)
+@router.post(
+    "/",
+    response_model=AddressResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Criar um novo endereço",
+    description="Cria um novo endereço associado ao usuário autenticado.",
+)
 def create_address(
     address_data: AddressCreate,
     db: Session = Depends(get_db),
@@ -34,7 +54,13 @@ def create_address(
     return AddressService.create_address(db, address_data, current_user)
 
 
-@router.put("/{address_id}", response_model=AddressResponse)
+@router.put(
+    "/{address_id}",
+    response_model=AddressResponse,
+    summary="Atualizar um endereço",
+    description="Atualiza um endereço específico do usuário autenticado com base no seu ID.",
+    responses={404: {"description": "Endereço não encontrado"}},
+)
 def update_address(
     address_id: int,
     address_data: AddressUpdate,
@@ -44,11 +70,16 @@ def update_address(
     return AddressService.update_address(db, address_id, address_data, current_user)
 
 
-@router.delete("/{address_id}", status_code=204)
+@router.delete(
+    "/{address_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Excluir um endereço",
+    description="Exclui um endereço específico do usuário autenticado com base no seu ID.",
+    responses={404: {"description": "Endereço não encontrado"}},
+)
 def delete_address(
     address_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     AddressService.delete_address(db, address_id, current_user)
-    return

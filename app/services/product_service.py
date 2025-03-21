@@ -17,6 +17,14 @@ class ProductService:
         return ProductRepository.get_all_products(db)
 
     @staticmethod
+    def get_all_products_by_user(db: Session, user_id: int) -> list[Product]:
+        return ProductRepository.get_all_products_by_user(db, user_id)
+
+    @staticmethod
+    def get_product_by_category(db: Session, category_id: int) -> list[Product]:
+        return ProductRepository.get_product_by_category(db, category_id)
+
+    @staticmethod
     def get_product_by_id(db: Session, product_id: int) -> ProductResponse:
         product = ProductRepository.get_product_by_id(db, product_id)
 
