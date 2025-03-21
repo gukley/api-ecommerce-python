@@ -64,7 +64,7 @@ class ProductService:
         DEFAULT_IMAGE = "uploads/defaults/no_product_image.png"
         ALLOWED_TYPES = ["image/jpeg", "image/png"]
 
-        if image and isinstance(image, UploadFile) and image.filename:
+        if image and image.__class__.__name__ == "UploadFile" and image.filename:
             if image.content_type not in ALLOWED_TYPES:
                 raise HTTPException(status_code=400, detail="Apenas arquivos JPG ou PNG são permitidos.")
 
