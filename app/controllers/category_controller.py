@@ -60,7 +60,7 @@ def create_category(
     db: Session = Depends(get_db),
     user: User = Depends(is_admin),
 ):
-    return CategoryService.create_category(db, category_data, user.id)
+    return CategoryService.create_category(db, category_data, user)
 
 
 @router.put(
