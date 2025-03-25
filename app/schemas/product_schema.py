@@ -12,6 +12,7 @@ class ProductBase(BaseModel):
     stock: int
     category_id: int
     image_path: Optional[str] = None
+    description: Optional[str] = None
 
 
 class ProductCreate(ProductBase):

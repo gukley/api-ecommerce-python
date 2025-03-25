@@ -10,7 +10,7 @@
         "ms-python.python",
         "ms-python.vscode-pylance",
         "ms-azuretools.vscode-docker",
-        "supermaven.supermaven" 
+        "supermaven.supermaven"
       ],
       "settings": {
         "python.defaultInterpreterPath": "/usr/local/bin/python",
