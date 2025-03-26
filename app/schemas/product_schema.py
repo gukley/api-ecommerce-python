@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import Optional
 from app.schemas.category_schema import CategoryResponse
 from app.schemas.discount_schema import DiscountResponse
+from pydantic.config import ConfigDict
 
 
 class ProductBase(BaseModel):
@@ -34,5 +35,4 @@ class ProductResponse(ProductBase):
     category: CategoryResponse
     discounts: list[DiscountResponse]
 
-    class Config:
-        model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)

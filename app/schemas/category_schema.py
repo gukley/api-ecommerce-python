@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from pydantic.config import ConfigDict
 
 
 class CategoryBase(BaseModel):
@@ -20,5 +21,4 @@ class CategoryResponse(CategoryBase):
     id: int
     user_id: int
 
-    class Config:
-        model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)
