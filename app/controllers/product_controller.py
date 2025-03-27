@@ -11,6 +11,7 @@ from app.services.product_service import ProductService
 from app.dependencies.auth import is_moderator, is_admin
 from typing import Optional, Union
 from app.repositories.category_repository import CategoryRepository
+from app.dependencies.product_form import product_create_form
 
 router = APIRouter()
 
@@ -71,27 +72,13 @@ def get_product(product_id: int, db: Session = Depends(get_db)):
     },
 )
 def create_product(
-    name: str = Form(...),
-    description: Optional[str] = Form(None),
-    price: float = Form(...),
-    stock: int = Form(...),
-    category_id: int = Form(...),
-    image: Optional[Union[UploadFile, str]] = File(None),
+    product_data: ProductCreate = Depends(product_create_form),
     db: Session = Depends(get_db),
     _: dict = Depends(is_moderator),
 ):
-    category = CategoryRepository.get_category_by_id(db, category_id)
+    category = CategoryRepository.get_category_by_id(db, product_data.category_id)
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
-
-    product_data = ProductCreate(
-        name=name,
-        description=description,
-        price=price,
-        stock=stock,
-        category_id=category_id,
-        image_path = ProductService.save_image(image)
-    )
 
     return ProductService.create_product(db, product_data)
 

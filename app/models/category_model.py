@@ -12,5 +12,6 @@ class Category(Base):
     user_id = Column(
         Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
+    image_path = Column(String(200), nullable=True)
 
     products = relationship("Product", back_populates="category")

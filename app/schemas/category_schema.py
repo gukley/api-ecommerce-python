@@ -6,6 +6,7 @@ from pydantic.config import ConfigDict
 class CategoryBase(BaseModel):
     name: str
     description: Optional[str] = None
+    image_path: Optional[str] = None
 
 
 class CategoryCreate(CategoryBase):

@@ -5,6 +5,7 @@ from app.schemas.category_schema import CategoryCreate, CategoryResponse, Catego
 from app.services.category_service import CategoryService
 from app.models.user_model import User
 from app.dependencies.auth import is_admin
+from app.dependencies.category_form import category_create_form
 
 
 router = APIRouter()
@@ -56,7 +57,7 @@ def get_category(category_id: int, db: Session = Depends(get_db)):
     },
 )
 def create_category(
-    category_data: CategoryCreate,
+    category_data: CategoryCreate = Depends(category_create_form),
     db: Session = Depends(get_db),
     user: User = Depends(is_admin),
 ):

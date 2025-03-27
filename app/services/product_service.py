@@ -1,18 +1,13 @@
 from sqlalchemy.orm import Session
-from fastapi import HTTPException, UploadFile
+from fastapi import HTTPException
 from app.repositories.product_repository import ProductRepository
 from app.models.product_model import Product
 from app.schemas.product_schema import (
-    ProductResponse,
     ProductCreate,
     ProductUpdate,
     ProductUpdateStock,
 )
 from app.repositories.category_repository import CategoryRepository
-import shutil
-import os
-from uuid import uuid4
-from typing import Optional
 from decimal import Decimal, ROUND_HALF_UP
 
 
@@ -53,31 +48,6 @@ class ProductService:
         product = Product(**product_data.model_dump())
 
         return ProductRepository.create_product(db, product)
-
-    @staticmethod
-    def save_image(image: Optional[UploadFile]) -> str:
-        UPLOAD_DIR = "uploads/products"
-        DEFAULT_IMAGE = "uploads/defaults/no_product_image.png"
-        ALLOWED_TYPES = ["image/jpeg", "image/png"]
-
-        if image and image.__class__.__name__ == "UploadFile" and image.filename:
-            if image.content_type not in ALLOWED_TYPES:
-                raise HTTPException(status_code=400, detail="Apenas arquivos JPG ou PNG são permitidos.")
-
-            extension = image.filename.split(".")[-1]
-            filename = f"{uuid4()}.{extension}"
-            file_path = os.path.join(UPLOAD_DIR, filename)
-
-            os.makedirs(UPLOAD_DIR, exist_ok=True)
-
-            with open(file_path, "wb") as buffer:
-                shutil.copyfileobj(image.file, buffer)
-
-            image_path = f"/{file_path}"
-        else:
-            image_path = f"/{DEFAULT_IMAGE}"
-
-        return image_path
 
     @staticmethod
     def update_product(
