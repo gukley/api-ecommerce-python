@@ -11,8 +11,8 @@ class CartItemCreate(CartItemBase):
     pass
 
 
-class CartItemRemove(CartItemBase):
-    pass
+class CartItemRemove(BaseModel):
+    product_id: int
 
 
 class CartItemUpdate(BaseModel):

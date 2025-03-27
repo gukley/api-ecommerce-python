@@ -74,7 +74,7 @@ class CartService:
         if not cart:
             raise HTTPException(status_code=404, detail="Cart not found")
         CartRepository.remove_item_from_cart(
-            db, cart_item.cart_id, cart_item.product_id
+            db, cart.id, cart_item.product_id
         )
 
     @staticmethod
