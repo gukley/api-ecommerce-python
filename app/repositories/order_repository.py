@@ -31,11 +31,11 @@ class OrderRepository:
 
     @staticmethod
     def update_order_status(
-        db: Session, order_id: int, new_status: str, user_id: int
+        db: Session, order_id: int, new_status: str
     ) -> Order:
         order = (
             db.query(Order)
-            .filter(Order.id == order_id, Order.user_id == user_id)
+            .filter(Order.id == order_id)
             .first()
         )
         if order and order.status != OrderStatus.CANCELED:

@@ -5,6 +5,7 @@ from app.schemas.order_schema import OrderCreate, OrderResponse, OrderUpdate
 from app.services.order_service import OrderService
 from app.core.middlewares.auth_middleware import get_current_user
 from app.models.user_model import User
+from app.dependencies.auth import is_moderator
 
 router = APIRouter()
 
@@ -58,17 +59,17 @@ def create_order(
     "/{order_id}",
     response_model=OrderResponse,
     summary="Atualizar status de um pedido",
-    description="Atualiza o status de um pedido específico com base no seu ID, desde que pertença ao usuário autenticado.",
+    description="Atualiza o status de um pedido específico com base no seu ID. Requer privilégios de moderador.",
     responses={404: {"description": "Pedido não encontrado"}},
 )
 def update_order(
     order_id: int,
     order_data: OrderUpdate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    _: User = Depends(is_moderator),
 ):
     return OrderService.update_order_status(
-        db, order_id, order_data.status, current_user
+        db, order_id, order_data.status
     )
 
 

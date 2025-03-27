@@ -73,9 +73,9 @@ class OrderService:
 
     @staticmethod
     def update_order_status(
-        db: Session, order_id: int, status: str, user: User
+        db: Session, order_id: int, status: str
     ) -> Order:
-        return OrderRepository.update_order_status(db, order_id, status, user.id)
+        return OrderRepository.update_order_status(db, order_id, status)
 
     @staticmethod
     def cancel_order(db: Session, order_id: int, user: User):
