@@ -19,6 +19,6 @@ class User(Base):
     password = Column(String(100), nullable=False)
     role = Column(Enum(UserRole), default=UserRole.CLIENT, nullable=False)
 
-    addresses = relationship("Address", back_populates="user")
-    orders = relationship("Order", back_populates="user")
-    cart = relationship("Cart", back_populates="user", uselist=False)
+    addresses = relationship("Address", back_populates="user", passive_deletes=True)
+    orders = relationship("Order", back_populates="user", passive_deletes=True)
+    cart = relationship("Cart", back_populates="user", uselist=False, passive_deletes=True)

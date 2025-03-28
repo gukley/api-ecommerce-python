@@ -14,4 +14,4 @@ class Cart(Base):
     created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
     user = relationship("User", back_populates="cart")
-    cart_items = relationship("CartItem", back_populates="cart")
+    cart_items = relationship("CartItem", back_populates="cart", passive_deletes=True)

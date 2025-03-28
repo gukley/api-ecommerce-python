@@ -75,7 +75,7 @@ def update_address(
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Excluir um endereço",
     description="Exclui um endereço específico do usuário autenticado com base no seu ID.",
-    responses={404: {"description": "Endereço não encontrado"}},
+    responses={404: {"description": "Endereço não encontrado"},  401: {"description": "Não autorizado"},},
 )
 def delete_address(
     address_id: int,
@@ -83,3 +83,5 @@ def delete_address(
     current_user: User = Depends(get_current_user),
 ):
     AddressService.delete_address(db, address_id, current_user)
+    return
+

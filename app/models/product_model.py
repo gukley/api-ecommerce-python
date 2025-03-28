@@ -17,6 +17,6 @@ class Product(Base):
     description = Column(String(500), nullable=True)
 
     category = relationship("Category", back_populates="products")
-    cart_items = relationship("CartItem", back_populates="product")
-    order_items = relationship("OrderItem", back_populates="product")
-    discounts = relationship("Discount", back_populates="product")
+    cart_items = relationship("CartItem", back_populates="product", passive_deletes=True)
+    order_items = relationship("OrderItem", back_populates="product", passive_deletes=True)
+    discounts = relationship("Discount", back_populates="product", passive_deletes=True)

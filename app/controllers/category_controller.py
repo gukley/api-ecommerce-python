@@ -93,7 +93,6 @@ def update_category(
     summary="Excluir uma categoria",
     description="Exclui uma categoria específica com base no seu ID. Requer privilégios de administrador.",
     responses={
-        404: {"description": "Categoria não encontrada"},
         401: {"description": "Não autorizado"},
         403: {"description": "Acesso negado"},
     },
@@ -101,6 +100,6 @@ def update_category(
 def delete_category(
     category_id: int, db: Session = Depends(get_db), _: User = Depends(is_admin)
 ):
-    success = CategoryService.delete_category(db, category_id)
-    if not success:
-        raise HTTPException(status_code=404, detail="Categoria não encontrada")
+    CategoryService.delete_category(db, category_id)
+    return
+

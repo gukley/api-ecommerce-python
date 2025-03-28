@@ -29,4 +29,4 @@ class Order(Base):
     user = relationship("User", back_populates="orders")
     address = relationship("Address", back_populates="orders")
     coupon = relationship("Coupon", back_populates="orders")
-    order_items = relationship("OrderItem", back_populates="order")
+    order_items = relationship("OrderItem", back_populates="order", passive_deletes=True)

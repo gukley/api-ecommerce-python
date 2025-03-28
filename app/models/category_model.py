@@ -14,4 +14,4 @@ class Category(Base):
     )
     image_path = Column(String(200), nullable=True)
 
-    products = relationship("Product", back_populates="category")
+    products = relationship("Product", back_populates="category", passive_deletes=True)
