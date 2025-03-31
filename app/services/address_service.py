@@ -27,7 +27,7 @@ class AddressService:
     def update_address(
         db: Session, address_id: int, address_data: AddressUpdate, current_user: User
     ) -> Address:
-        address = AddressRepository.get_address_by_id(db, address_id)
+        address = AddressRepository.get_address_by_id(db, address_id, current_user.id)
 
         if not address:
             raise HTTPException(status_code=404, detail="Address not found")
@@ -42,7 +42,7 @@ class AddressService:
 
     @staticmethod
     def delete_address(db: Session, address_id: int, current_user: User):
-        address = AddressRepository.get_address_by_id(db, address_id)
+        address = AddressRepository.get_address_by_id(db, address_id, current_user.id)
 
         if not address:
             raise HTTPException(status_code=404, detail="Address not found")
