@@ -41,6 +41,7 @@ def get_discount(discount_id: int, db: Session = Depends(get_db)):
     responses={
         401: {"description": "Não autorizado"},
         403: {"description": "Acesso negado"},
+        404: {"description": "Produto não encontrado"},
     },
 )
 def create_discount(
@@ -58,6 +59,7 @@ def create_discount(
     description="Atualiza informações de um desconto específico com base no seu ID. Requer privilégios de administrador.",
     responses={
         404: {"description": "Desconto não encontrado"},
+        404: {"description": "Produto não encontrado"},
         401: {"description": "Não autorizado"},
         403: {"description": "Acesso negado"},
     },

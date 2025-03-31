@@ -3,6 +3,7 @@ from fastapi import HTTPException
 from app.repositories.discount_repository import DiscountRepository
 from app.models.discount_model import Discount
 from app.schemas.discount_schema import DiscountCreate, DiscountUpdate
+from app.repositories.product_repository import ProductRepository
 
 
 class DiscountService:
@@ -16,6 +17,10 @@ class DiscountService:
 
     @staticmethod
     def create_discount(db: Session, discount_data: DiscountCreate) -> Discount:
+        product = ProductRepository.get_product_by_id(db, discount_data.product_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+
         discount = Discount(**discount_data.model_dump())
         return DiscountRepository.create_discount(db, discount)
 
@@ -23,10 +28,16 @@ class DiscountService:
     def update_discount(
         db: Session, discount_id: int, discount_data: DiscountUpdate
     ) -> Discount:
+        product = ProductRepository.get_product_by_id(db, discount_data.product_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+
         updates = discount_data.model_dump(exclude_unset=True)
+
         discount = DiscountRepository.update_discount(db, discount_id, updates)
         if not discount:
             raise HTTPException(status_code=404, detail="Discount not found")
+        
         return discount
 
     @staticmethod
