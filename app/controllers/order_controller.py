@@ -7,7 +7,6 @@ from app.core.middlewares.auth_middleware import get_current_user
 from app.models.user_model import User
 from app.dependencies.auth import is_moderator
 from app.socketio.events import notify_new_order
-from asyncio import create_task
 
 router = APIRouter()
 
@@ -49,14 +48,14 @@ def get_order(
     summary="Criar um novo pedido",
     description="Cria um novo pedido para o usuário autenticado.",
 )
-def create_order(
+async def create_order(
     order_data: OrderCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     order = OrderService.create_order(db, order_data, current_user)
 
-    create_task(notify_new_order(order.id))
+    await notify_new_order(order.id)
 
     return order
 
