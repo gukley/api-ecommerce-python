@@ -18,6 +18,7 @@ class User(Base):
     email = Column(String(100), unique=True, nullable=False, index=True)
     password = Column(String(100), nullable=False)
     role = Column(Enum(UserRole), default=UserRole.CLIENT, nullable=False)
+    image_path = Column(String(200), default="/uploads/defaults/no_profile_image.png", nullable=True)
 
     addresses = relationship("Address", back_populates="user", passive_deletes=True)
     orders = relationship("Order", back_populates="user", passive_deletes=True)

@@ -34,3 +34,12 @@ class UserRepository:
         if user:
             db.delete(user)
             db.commit()
+
+    @staticmethod
+    def update_user_image(db: Session, user_id: int, image_path: str) -> User:
+        user = db.query(User).filter(User.id == user_id).first()
+        if user:
+            user.image_path = image_path
+            db.commit()
+            db.refresh(user)
+        return user

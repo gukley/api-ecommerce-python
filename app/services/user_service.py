@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from app.repositories.user_repository import UserRepository
 from app.models.user_model import User, UserRole
-from app.schemas.user_schema import UserUpdate, UserCreateModerator
+from app.schemas.user_schema import UserUpdate, UserCreateModerator, UserImageUpdate
 from app.core.security import hash_password
 from fastapi import HTTPException
 
@@ -47,3 +47,7 @@ class UserService:
         user_data.password = hash_password(user_data.password)
         user = User(**user_data.model_dump())
         return UserRepository.create_user(db, user)
+
+    @staticmethod
+    def update_user_image(db: Session, current_user: User, user_image: UserImageUpdate) -> User:
+        return UserRepository.update_user_image(db, current_user.id, user_image.image_path)

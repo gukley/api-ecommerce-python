@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.user_schema import UserResponse, UserUpdate, UserCreateModerator
+from app.schemas.user_schema import UserResponse, UserUpdate, UserCreateModerator, UserImageUpdate
 from app.services.user_service import UserService
 from app.core.middlewares.auth_middleware import get_current_user
 from app.models.user_model import User
+from app.dependencies.user_image_form import user_image_form
 
 router = APIRouter()
 
@@ -63,3 +64,20 @@ def create_moderator(
     current_user: User = Depends(get_current_user),
 ):
     return UserService.create_moderator(db, user_data, current_user)
+
+@router.put(
+    "/image",
+    response_model=UserResponse,
+    summary="Atualizar imagem de perfil do usuário",
+    description="Atualiza a imagem de perfil do usuário autenticado.",
+    responses={
+        401: {"description": "Não autorizado"},
+        403: {"description": "Acesso negado"},
+    },
+)
+def update_user_image(
+    user_image: UserImageUpdate = Depends(user_image_form),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    return UserService.update_user_image(db, current_user, user_image)

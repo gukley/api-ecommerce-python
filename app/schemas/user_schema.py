@@ -20,10 +20,13 @@ class UserUpdate(BaseModel):
     name: Optional[str] = None
     email: Optional[EmailStr] = None
 
+class UserImageUpdate(BaseModel):
+    image_path: Optional[str] = None
 
 class UserResponse(UserBase):
     id: int
     role: UserRole
+    image_path: Optional[str]
 
     class Config:
         model_config = {"from_attributes": True}

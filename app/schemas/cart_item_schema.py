@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-
+from typing import Optional
 
 class CartItemBase(BaseModel):
     product_id: int
@@ -23,6 +23,7 @@ class CartItemUpdate(BaseModel):
 class CartItemResponse(CartItemBase):
     id: int
     cart_id: int
+    image_path: Optional[str]
 
     class Config:
         model_config = {"from_attributes": True}

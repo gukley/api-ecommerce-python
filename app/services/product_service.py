@@ -79,3 +79,10 @@ class ProductService:
     @staticmethod
     def delete_product(db: Session, product_id: int):
         ProductRepository.delete_product(db, product_id)
+
+    @staticmethod
+    def get_product_image_path(db: Session, product_id: int) -> str:
+        product = ProductRepository.get_product_by_id(db, product_id)
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")    
+        return product.image_path

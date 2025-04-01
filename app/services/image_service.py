@@ -8,7 +8,7 @@ class ImageService:
     @staticmethod
     def save_image(image: Optional[UploadFile], source: str) -> str:
         UPLOAD_DIR = "uploads/" + source
-        DEFAULT_IMAGE = "uploads/defaults/no_product_image.png"
+        DEFAULT_IMAGE = "uploads/defaults/no_" + source + "_image.png"
         ALLOWED_TYPES = ["image/jpeg", "image/png"]
 
         if image and image.__class__.__name__ == "UploadFile" and image.filename:

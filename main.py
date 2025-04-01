@@ -3,6 +3,8 @@ from app.router import api_router
 from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from app.socketio import socketio_app
+import app.socketio.events 
 
 app = FastAPI(debug=True)
 
@@ -17,6 +19,7 @@ app.add_middleware(
 )
 
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+app.mount("/socket", socketio_app)
 
 def custom_openapi():
     if app.openapi_schema:

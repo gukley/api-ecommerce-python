@@ -12,3 +12,4 @@ python-decouple
 python-jose
 httpx
 python-multipart
+python-socketio[asgi]
