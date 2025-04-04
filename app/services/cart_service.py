@@ -91,5 +91,5 @@ class CartService:
             raise HTTPException(status_code=404, detail="Cart not found")
 
         CartRepository.update_item_quantity(
-            db, cart, cart_item.product_id, cart_item.quantity
+            db, cart.id, cart_item.product_id, cart_item.quantity
         )
