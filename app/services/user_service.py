@@ -22,8 +22,8 @@ class UserService:
             existing_user = (
                 db.query(User).filter(User.email == updates["email"]).first()
             )
-        if existing_user:
-            raise HTTPException(status_code=400, detail="Email already registered")
+            if existing_user:
+                raise HTTPException(status_code=400, detail="Email already registered")
 
         return UserRepository.update_user(db, current_user.id, updates)
 
