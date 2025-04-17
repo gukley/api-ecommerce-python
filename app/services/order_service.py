@@ -9,6 +9,7 @@ from app.services.cart_service import CartService
 from app.models.cart_item_model import CartItem
 from app.services.coupon_service import CouponService
 from app.services.address_service import AddressService
+from decimal import Decimal
 
 
 class OrderService:
@@ -37,7 +38,8 @@ class OrderService:
 
         if order_data.coupon_id:
             coupon = CouponService.get_coupon_by_id(db, order_data.coupon_id)
-            total_amount = total_amount - (total_amount * coupon.discount / 100)
+            total_amount = Decimal(total_amount)
+            total_amount = total_amount - (total_amount * coupon.discount_percentage / Decimal(100))
 
         order = Order(
             **order_data.model_dump(),
