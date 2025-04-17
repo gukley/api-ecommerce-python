@@ -73,3 +73,12 @@ class ProductRepository:
         if product:
             db.delete(product)
             db.commit()
+
+    @staticmethod
+    def update_product_image(db: Session, product_id: int, image_path: str) -> Product:
+        product = db.query(Product).filter(Product.id == product_id).first()
+        if product:
+            product.image_path = image_path
+            db.commit()
+            db.refresh(product)
+        return product

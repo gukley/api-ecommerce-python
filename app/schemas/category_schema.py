@@ -18,6 +18,9 @@ class CategoryUpdate(BaseModel):
     description: Optional[str] = None
 
 
+class CategoryImageUpdate(BaseModel):
+    image_path: Optional[str] = None
+
 class CategoryResponse(CategoryBase):
     id: int
     user_id: int

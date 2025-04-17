@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from app.repositories.category_repository import CategoryRepository
 from app.models.category_model import Category
-from app.schemas.category_schema import CategoryCreate, CategoryUpdate
+from app.schemas.category_schema import CategoryCreate, CategoryUpdate, CategoryImageUpdate
 from app.models.user_model import User
 
 
@@ -42,3 +42,7 @@ class CategoryService:
     @staticmethod
     def delete_category(db: Session, category_id: int):
         CategoryRepository.delete_category(db, category_id)
+
+    @staticmethod
+    def update_category_image(db: Session, category_id: int, category_image: CategoryImageUpdate) -> Category:
+        return CategoryRepository.update_category_image(db, category_id, category_image.image_path)

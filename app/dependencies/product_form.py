@@ -1,6 +1,6 @@
 from fastapi import Form, File, UploadFile
 from typing import Optional, Union
-from app.schemas.product_schema import ProductCreate
+from app.schemas.product_schema import ProductCreate, ProductImageUpdate
 from app.services.image_service import ImageService
 
 async def product_create_form(
@@ -17,5 +17,12 @@ async def product_create_form(
         price=price,
         stock=stock,
         category_id=category_id,
+        image_path=ImageService.save_image(image, "products")
+    )
+
+async def product_update_form(
+    image: Optional[Union[UploadFile, str]] = File(None),
+) -> ProductCreate:
+    return ProductImageUpdate(
         image_path=ImageService.save_image(image, "products")
     )

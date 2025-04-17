@@ -5,6 +5,7 @@ from app.models.product_model import Product
 from app.schemas.product_schema import (
     ProductCreate,
     ProductUpdate,
+    ProductImageUpdate,
     ProductUpdateStock,
 )
 from app.repositories.category_repository import CategoryRepository
@@ -86,3 +87,7 @@ class ProductService:
         if not product:
             raise HTTPException(status_code=404, detail="Product not found")    
         return product.image_path
+
+    @staticmethod
+    def update_product_image(db: Session, product_id: int, product_image: ProductImageUpdate) -> Product:
+        return ProductRepository.update_product_image(db, product_id, product_image.image_path)

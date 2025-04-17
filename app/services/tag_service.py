@@ -17,7 +17,7 @@ class TagService:
 
     @staticmethod
     def create_tag(db: Session, tag_data: TagCreate) -> Tag:
-        tag = tag(**tag_data.model_dump())
+        tag = Tag(**tag_data.model_dump())
 
         if TagRepository.get_tag_by_code(db, tag.code):
             raise HTTPException(status_code=400, detail="Tag code already exists")

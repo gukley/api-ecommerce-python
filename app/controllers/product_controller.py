@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, File, UploadFile, Form
+from fastapi import APIRouter, Depends, HTTPException, status, Form
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.product_schema import (
@@ -6,12 +6,13 @@ from app.schemas.product_schema import (
     ProductResponse,
     ProductUpdate,
     ProductUpdateStock,
+    ProductImageUpdate
 )
 from app.services.product_service import ProductService
 from app.dependencies.auth import is_moderator, is_admin
-from typing import Optional, Union
 from app.repositories.category_repository import CategoryRepository
-from app.dependencies.product_form import product_create_form
+from app.dependencies.product_form import product_create_form, product_update_form
+from app.models.user_model import User
 
 router = APIRouter()
 
@@ -140,3 +141,22 @@ def delete_product(
     _: dict = Depends(is_admin),
 ):
     ProductService.delete_product(db, product_id)
+
+
+@router.put(
+    "/{product_id}/image",
+    response_model=ProductResponse,
+    summary="Atualizar imagem do produto",
+    description="Atualiza a imagem do produto. Requer privilégios de administrador.",
+    responses={
+        401: {"description": "Não autorizado"},
+        403: {"description": "Acesso negado"},
+    },
+)
+def update_product_image(
+    product_id: int,
+    product_image: ProductImageUpdate = Depends(product_update_form),
+    db: Session = Depends(get_db),
+    _: User = Depends(is_admin),
+):
+    return ProductService.update_product_image(db, product_id, product_image)

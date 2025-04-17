@@ -10,6 +10,6 @@ class Tag(Base):
     color_hex = Column(String(7), nullable=False, default="#000000")
     description = Column(String(500), nullable=True)
 
-    product_links = relationship("ProductTag", back_populates="tag")
+    product_links = relationship("TagProduct", back_populates="tag")
 
-    products = relationship("Product", secondary="product_tags", viewonly=True)
+    products = relationship("Product", secondary="tag_products", viewonly=True)

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.category_schema import CategoryCreate, CategoryResponse, CategoryUpdate
+from app.schemas.category_schema import CategoryCreate, CategoryResponse, CategoryUpdate, CategoryImageUpdate
 from app.services.category_service import CategoryService
 from app.models.user_model import User
 from app.dependencies.auth import is_admin
-from app.dependencies.category_form import category_create_form
+from app.dependencies.category_form import category_create_form, category_update_form
 
 
 router = APIRouter()
@@ -103,3 +103,20 @@ def delete_category(
     CategoryService.delete_category(db, category_id)
     return
 
+@router.put(
+    "/{category_id}/image",
+    response_model=CategoryResponse,
+    summary="Atualizar imagem da categoria",
+    description="Atualiza a imagem da categoria. Requer privilégios de administrador.",
+    responses={
+        401: {"description": "Não autorizado"},
+        403: {"description": "Acesso negado"},
+    },
+)
+def update_user_image(
+    category_id: int,
+    category_image: CategoryImageUpdate = Depends(category_update_form),
+    db: Session = Depends(get_db),
+    _: User = Depends(is_admin),
+):
+    return CategoryService.update_category_image(db, category_id, category_image)

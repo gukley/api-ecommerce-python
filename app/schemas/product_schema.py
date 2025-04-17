@@ -31,6 +31,9 @@ class ProductUpdateStock(BaseModel):
     stock: Optional[int] = None
 
 
+class ProductImageUpdate(BaseModel):
+    image_path: Optional[str] = None
+
 class ProductResponse(ProductBase):
     id: int
     category: CategoryResponse

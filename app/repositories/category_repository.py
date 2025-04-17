@@ -38,3 +38,12 @@ class CategoryRepository:
         if category:
             db.delete(category)
             db.commit()
+
+    @staticmethod
+    def update_category_image(db: Session, category_id: int, image_path: str) -> Category:
+        category = db.query(Category).filter(Category.id == category_id).first()
+        if category:
+            category.image_path = image_path
+            db.commit()
+            db.refresh(category)
+        return category
