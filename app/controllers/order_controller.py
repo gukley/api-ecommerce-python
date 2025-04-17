@@ -55,7 +55,7 @@ async def create_order(
 ):
     order = OrderService.create_order(db, order_data, current_user)
 
-    await notify_new_order(order.id)
+    await notify_new_order(order)
 
     return order
 

@@ -1,5 +1,7 @@
 from . import sio
 from urllib.parse import parse_qs
+from app.schemas.order_schema import OrderResponse
+from app.models.order_model import Order
 
 connected_users = {}
 
@@ -22,6 +24,8 @@ async def disconnect(sid):
         print(f"🔌 Moderator desconectado: {user_id} (sid: {sid})")
 
 
-async def notify_new_order(order_id: int):
+async def notify_new_order(order: Order):
+    order_data = OrderResponse.model_validate(order).model_dump()
+
     for sid in connected_users:
-        await sio.emit("new_order", {"order_id": order_id}, to=sid)
+        await sio.emit("new_order", {"order": order_data}, to=sid)
