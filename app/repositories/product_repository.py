@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app.models.product_model import Product
 from sqlalchemy.orm import joinedload
+from fastapi import HTTPException
 
 
 class ProductRepository:
@@ -65,6 +66,10 @@ class ProductRepository:
     @staticmethod
     def delete_product(db: Session, product_id: int):
         product = db.query(Product).filter(Product.id == product_id).first()
+
+        if product.order_items and len(product.order_items) > 0:
+            raise HTTPException(404, "Product has orders")
+
         if product:
             db.delete(product)
             db.commit()

@@ -24,6 +24,7 @@ class ProductUpdate(BaseModel):
     name: Optional[str] = None
     price: Optional[Annotated[Decimal, Field(max_digits=10, decimal_places=2)]] = None
     category_id: Optional[int] = None
+    description: Optional[str] = None
 
 
 class ProductUpdateStock(BaseModel):
