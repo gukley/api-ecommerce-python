@@ -91,3 +91,19 @@ class ProductService:
     @staticmethod
     def update_product_image(db: Session, product_id: int, product_image: ProductImageUpdate) -> Product:
         return ProductRepository.update_product_image(db, product_id, product_image.image_path)
+
+    @staticmethod
+    def decrease_stock(db: Session, product_id: int, quantity: int) -> Product:
+        product = ProductRepository.get_product_by_id(db, product_id)
+        
+        if not product:
+            raise HTTPException(status_code=404, detail="Product not found")
+        
+        if product.stock < quantity:
+            raise HTTPException(status_code=400, detail="Not enough stock")
+        
+        new_stock = product.stock - quantity
+       
+        ProductRepository.update_stock(db, product_id, new_stock)
+ 
+        return product

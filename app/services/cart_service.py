@@ -34,6 +34,7 @@ class CartService:
         for item in cart.cart_items:
             total += item.quantity * item.unit_price
             item.image_path = ProductService.get_product_image_path(db, item.product_id)
+            item.name = item.product.name
             items.append(CartItemResponse.model_validate(item.__dict__))
 
         return CartItemsResponse(cart_id=cart.id, items=items, total_amount=total)
