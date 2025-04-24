@@ -2,9 +2,7 @@ from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 from app.models.order_model import OrderStatus
-from typing_extensions import Annotated
-from decimal import Decimal
-
+from app.schemas.product_schema import ProductBase
 
 class OrderBase(BaseModel):
     address_id: int
@@ -23,6 +21,7 @@ class OrderResponse(OrderBase):
     id: int
     order_date: datetime
     status: OrderStatus
+    products: Optional[list[ProductBase]] = None
 
     class Config:
         model_config = {"from_attributes": True}

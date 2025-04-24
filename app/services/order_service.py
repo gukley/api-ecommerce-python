@@ -3,14 +3,16 @@ from fastapi import HTTPException
 from app.repositories.order_repository import OrderRepository
 from app.models.order_model import Order, OrderStatus
 from app.models.order_item_model import OrderItem
-from app.schemas.order_schema import OrderCreate, OrderUpdate
+from app.schemas.order_schema import OrderCreate, OrderUpdate, OrderResponse
 from app.models.user_model import User
 from app.services.cart_service import CartService
 from app.models.cart_item_model import CartItem
 from app.services.coupon_service import CouponService
 from app.services.address_service import AddressService
 from decimal import Decimal
-
+from app.services.product_service import ProductService
+from sqlalchemy.exc import IntegrityError
+from app.schemas.product_schema import ProductBase
 
 class OrderService:
     @staticmethod
@@ -20,13 +22,18 @@ class OrderService:
         if not cart.items:
             raise HTTPException(status_code=400, detail="Cart is empty")
 
-        order = OrderService.create_order_entry(db, order_data, user, cart.total_amount)
+        try:
+            with db.begin():
+                order = OrderService.create_order_entry(db, order_data, user, cart.total_amount)
 
-        OrderService.create_order_items(db, order, cart.items)
+                OrderService.create_order_items(db, order, cart.items)
 
-        CartService.clear_cart(db, user)
+                CartService.clear_cart(db, user)
 
-        return order
+                return order
+        
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error on order creation: {e}")
 
     @staticmethod
     def create_order_entry(
@@ -50,16 +57,19 @@ class OrderService:
 
     @staticmethod
     def create_order_items(db: Session, order: Order, cart_items: list[CartItem]):
-        order_items = [
-            OrderItem(
-                order_id=order.id,
-                product_id=item.product_id,
-                quantity=item.quantity,
-                unit_price=item.unit_price,
-            )
-            for item in cart_items
-        ]
+        order_items = []
 
+        for item in cart_items:
+            ProductService.decrease_stock(db, item.product_id, item.quantity)
+            order_items.append(
+                OrderItem(
+                    order_id=order.id,
+                    product_id=item.product_id,
+                    quantity=item.quantity,
+                    unit_price=item.unit_price,
+                )
+            )
+            
         OrderRepository.create_order_items(db, order_items)
 
     @staticmethod
@@ -67,11 +77,14 @@ class OrderService:
         return OrderRepository.get_orders_by_user(db, user.id)
 
     @staticmethod
-    def get_order_by_id(db: Session, order_id: int, user: User) -> Order:
+    def get_order_by_id(db: Session, order_id: int, user: User) -> OrderResponse:
         order = OrderRepository.get_order_by_id(db, order_id, user.id)
-        if order:
-            return order
-        return None
+        
+        items = []
+        for item in order.order_items:
+            items.append(ProductBase.model_validate(item.product.__dict__))
+        print(order.coupon.__dict__)
+        return OrderResponse(id=order.id, order_date=order.order_date, address_id=order.address_id, status=order.status, products=items)
 
     @staticmethod
     def update_order_status(

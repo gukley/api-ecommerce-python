@@ -19,12 +19,13 @@ class OrderRepository:
 
     @staticmethod
     def get_orders_by_user(db: Session, user_id: int) -> list[Order]:
-        return db.query(Order).filter(Order.user_id == user_id).all()
+        return db.query(Order).options(joinedload(Order.order_items)).filter(Order.user_id == user_id).all()
 
     @staticmethod
     def get_order_by_id(db: Session, order_id: int, user_id: int) -> Order:
         return (
             db.query(Order)
+            .options(joinedload(Order.order_items))
             .filter(Order.id == order_id, Order.user_id == user_id)
             .first()
         )
