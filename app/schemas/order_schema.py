@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import datetime
 from app.models.order_model import OrderStatus
 from app.schemas.product_schema import ProductBase
+from pydantic import ConfigDict
 
 class OrderBase(BaseModel):
     address_id: int
@@ -23,5 +24,4 @@ class OrderResponse(OrderBase):
     status: OrderStatus
     products: Optional[list[ProductBase]] = None
 
-    class Config:
-        model_config = {"from_attributes": True}
+    model_config = ConfigDict(from_attributes=True)
