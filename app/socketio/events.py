@@ -25,7 +25,7 @@ async def disconnect(sid):
 
 
 async def notify_new_order(order: Order):
-    order_data = OrderResponse.model_validate(order).model_dump(mode="json")
+    # order_data = OrderResponse.model_validate(order).model_dump(mode="json")
 
     for sid in connected_users:
-        await sio.emit("new_order", {"order": order_data}, to=sid)
+        await sio.emit("new_order", {"order": order.id}, to=sid)
