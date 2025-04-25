@@ -22,18 +22,13 @@ class OrderService:
         if not cart.items:
             raise HTTPException(status_code=400, detail="Cart is empty")
 
-        try:
-            with db.begin():
-                order = OrderService.create_order_entry(db, order_data, user, cart.total_amount)
+        order = OrderService.create_order_entry(db, order_data, user, cart.total_amount)
 
-                OrderService.create_order_items(db, order, cart.items)
+        OrderService.create_order_items(db, order, cart.items)
 
-                CartService.clear_cart(db, user)
+        CartService.clear_cart(db, user)
 
-                return order
-        
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Error on order creation: {e}")
+        return order
 
     @staticmethod
     def create_order_entry(
