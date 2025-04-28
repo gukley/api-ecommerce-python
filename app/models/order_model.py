@@ -26,6 +26,8 @@ class Order(Base):
     status = Column(Enum(OrderStatus), default=OrderStatus.PENDING, nullable=False)
     total_amount = Column(DECIMAL(10, 2), nullable=False)
 
+    admin_id = Column(Integer, nullable=True)
+
     user = relationship("User", back_populates="orders")
     address = relationship("Address", back_populates="orders")
     coupon = relationship("Coupon", back_populates="orders")

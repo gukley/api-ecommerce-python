@@ -107,3 +107,7 @@ class ProductService:
         ProductRepository.update_stock(db, product_id, new_stock)
  
         return product
+    
+    @staticmethod
+    def get_admin_id_by_product_id(db: Session, product_id: int) -> int:
+        return ProductRepository.get_admin_id_by_product_id(db, product_id)

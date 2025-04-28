@@ -82,3 +82,9 @@ class ProductRepository:
             db.commit()
             db.refresh(product)
         return product
+
+    @staticmethod
+    def get_admin_id_by_product_id(db: Session, product_id: int) -> int:
+        product = db.query(Product).filter(Product.id == product_id).first()
+        if product:
+            return product.category.user_id

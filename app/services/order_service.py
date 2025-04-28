@@ -21,8 +21,10 @@ class OrderService:
 
         if not cart.items:
             raise HTTPException(status_code=400, detail="Cart is empty")
+        
+        admin_id = ProductService.get_admin_id_by_product_id(db, cart.items[0].product_id)
 
-        order = OrderService.create_order_entry(db, order_data, user, cart.total_amount)
+        order = OrderService.create_order_entry(db, order_data, user, cart.total_amount, admin_id)
 
         OrderService.create_order_items(db, order, cart.items)
 
@@ -32,7 +34,7 @@ class OrderService:
 
     @staticmethod
     def create_order_entry(
-        db: Session, order_data: OrderCreate, user: User, total_amount: float
+        db: Session, order_data: OrderCreate, user: User, total_amount: float, admin_id: int
     ) -> Order:
         address = AddressService.get_address_by_id(db, user, order_data.address_id)
         if not address:
@@ -47,6 +49,7 @@ class OrderService:
             **order_data.model_dump(),
             user_id=user.id,
             total_amount=total_amount,
+            admin_id=admin_id
         )
         return OrderRepository.create_order(db, order)
 
@@ -68,8 +71,16 @@ class OrderService:
         OrderRepository.create_order_items(db, order_items)
 
     @staticmethod
-    def get_orders_by_user(db: Session, user: User) -> list[Order]:
-        return OrderRepository.get_orders_by_user(db, user.id)
+    def get_orders_by_user(db: Session, user: User) -> list[OrderResponse]:
+        orders = OrderRepository.get_orders_by_user(db, user.id)
+
+        for order in orders:
+            items = []
+            for item in order.order_items:
+                items.append(ProductBase.model_validate(item.product.__dict__))
+            order.products = items
+
+        return orders
 
     @staticmethod
     def get_order_by_id(db: Session, order_id: int, user: User) -> OrderResponse:
@@ -78,7 +89,7 @@ class OrderService:
         items = []
         for item in order.order_items:
             items.append(ProductBase.model_validate(item.product.__dict__))
-        print(order.coupon.__dict__)
+        
         return OrderResponse(id=order.id, order_date=order.order_date, address_id=order.address_id, status=order.status, products=items)
 
     @staticmethod
@@ -92,5 +103,25 @@ class OrderService:
         return OrderRepository.cancel_order(db, order_id, user.id)
     
     @staticmethod
-    def get_all_orders(db: Session) -> list[Order]:
-        return OrderRepository.get_all_orders(db)
+    def get_all_orders(db: Session) -> list[OrderResponse]:
+        orders = OrderRepository.get_all_orders(db)
+
+        for order in orders:
+            items = []
+            for item in order.order_items:
+                items.append(ProductBase.model_validate(item.product.__dict__))
+            order.products = items
+
+        return orders
+
+    @staticmethod
+    def get_all_orders_by_admin(db: Session, admin_id: int) -> list[OrderResponse]:
+        orders = OrderRepository.get_all_orders_by_admin(db, admin_id)
+
+        for order in orders:
+            items = []
+            for item in order.order_items:
+                items.append(ProductBase.model_validate(item.product.__dict__))
+            order.products = items
+
+        return orders

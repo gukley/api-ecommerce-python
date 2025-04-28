@@ -10,6 +10,18 @@ from app.socketio.events import notify_new_order
 
 router = APIRouter()
 
+@router.get(
+    "/all",
+    response_model=list[OrderResponse],
+    summary="Obter todos os pedidos",
+    description="Retorna uma lista contendo todos os pedidos cadastrados no sistema. Requer privilégios de moderador.",
+    responses={401: {"description": "Não autorizado"} , 403: {"description": "Acesso negado"}},
+)
+def get_all_orders(
+    db: Session = Depends(get_db),
+    _: User = Depends(is_moderator),
+):
+    return OrderService.get_all_orders(db)
 
 @router.get(
     "/",
@@ -95,14 +107,15 @@ def cancel_order(
 
 
 @router.get(
-    "/all",
+    "/all/{admin_id}",
     response_model=list[OrderResponse],
-    summary="Obter todos os pedidos",
+    summary="Obter todos os pedidos de uma loja especifica",
     description="Retorna uma lista contendo todos os pedidos cadastrados no sistema. Requer privilégios de moderador.",
     responses={401: {"description": "Não autorizado"} , 403: {"description": "Acesso negado"}},
 )
-def get_all_orders(
+def get_all_orders_by_admin(
+    admin_id: int,
     db: Session = Depends(get_db),
     _: User = Depends(is_moderator),
 ):
-    return OrderService.get_all_orders(db)
+    return OrderService.get_all_orders_by_admin(db, admin_id)

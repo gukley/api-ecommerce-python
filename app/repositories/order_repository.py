@@ -68,3 +68,7 @@ class OrderRepository:
     @staticmethod
     def get_all_orders(db: Session) -> list[Order]:
         return db.query(Order).options(joinedload(Order.order_items)).all()
+    
+    @staticmethod
+    def get_all_orders_by_admin(db: Session, admin_id: int) -> list[Order]:
+        return db.query(Order).options(joinedload(Order.order_items)).filter(Order.admin_id == admin_id).all()
