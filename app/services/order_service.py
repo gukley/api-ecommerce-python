@@ -90,3 +90,7 @@ class OrderService:
     @staticmethod
     def cancel_order(db: Session, order_id: int, user: User):
         return OrderRepository.cancel_order(db, order_id, user.id)
+    
+    @staticmethod
+    def get_all_orders(db: Session) -> list[Order]:
+        return OrderRepository.get_all_orders(db)

@@ -64,3 +64,7 @@ class OrderRepository:
             db.commit()
             db.refresh(order)
         return order
+
+    @staticmethod
+    def get_all_orders(db: Session) -> list[Order]:
+        return db.query(Order).options(joinedload(Order.order_items)).all()

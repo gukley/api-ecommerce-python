@@ -92,3 +92,18 @@ def cancel_order(
 ):
     OrderService.cancel_order(db, order_id, current_user)
     return
+
+
+@router.get(
+    "/all",
+    response_model=list[OrderResponse],
+    summary="Obter todos os pedidos",
+    description="Retorna uma lista contendo todos os pedidos cadastrados no sistema. Requer privilégios de moderador.",
+    responses={401: {"description": "Não autorizado"}},
+    responses={403: {"description": "Acesso negado"}},
+)
+def get_all_orders(
+    db: Session = Depends(get_db),
+    _: User = Depends(is_moderator),
+):
+    return OrderService.get_all_orders(db)
