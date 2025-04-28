@@ -99,8 +99,7 @@ def cancel_order(
     response_model=list[OrderResponse],
     summary="Obter todos os pedidos",
     description="Retorna uma lista contendo todos os pedidos cadastrados no sistema. Requer privilégios de moderador.",
-    responses={401: {"description": "Não autorizado"}},
-    responses={403: {"description": "Acesso negado"}},
+    responses={401: {"description": "Não autorizado"} , 403: {"description": "Acesso negado"}},
 )
 def get_all_orders(
     db: Session = Depends(get_db),
