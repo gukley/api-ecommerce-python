@@ -22,7 +22,7 @@ async def product_create_form(
 
 async def product_update_form(
     image: Optional[Union[UploadFile, str]] = File(None),
-) -> ProductCreate:
+) -> ProductImageUpdate:
     return ProductImageUpdate(
         image_path=ImageService.save_image(image, "products")
     )

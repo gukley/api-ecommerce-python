@@ -16,7 +16,7 @@ async def category_create_form(
 
 async def category_update_form(
     image: Optional[Union[UploadFile, str]] = File(None),
-) -> CategoryCreate:
+) -> CategoryImageUpdate:
     return CategoryImageUpdate(
         image_path=ImageService.save_image(image, "categories")
     )
