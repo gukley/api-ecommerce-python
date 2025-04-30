@@ -23,5 +23,6 @@ class OrderResponse(OrderBase):
     order_date: datetime
     status: OrderStatus
     products: Optional[list[ProductBase]] = None
+    user_id: int
 
     model_config = ConfigDict(from_attributes=True)
