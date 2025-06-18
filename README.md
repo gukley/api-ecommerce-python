@@ -1,17 +1,3 @@
-# Meu Projeto FastAPI
-
-Este projeto é um exemplo de aplicação **FastAPI** que utiliza **PostgreSQL** como banco de dados e se integra perfeitamente ao **Docker** e ao **VS Code Dev Containers** para desenvolvimento.
-
-## Sumário
-
-1. [Requisitos](#requisitos)  
-2. [Criando o arquivo `.env`](#criando-o-arquivo-env)  
-3. [Executando com Docker e Dev Containers (Recomendado)](#executando-com-docker-e-dev-containers-recomendado)  
-4. [Executando localmente sem Docker (sem banco)](#executando-localmente-sem-docker-sem-banco)  
-5. [Estrutura de Pastas (Visão Geral)](#estrutura-de-pastas-visão-geral)  
-6. [Endpoints](#endpoints)
-
----
 
 ## Requisitos
 
