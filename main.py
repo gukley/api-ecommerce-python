@@ -4,23 +4,27 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from app.socketio import socketio_app
-import app.socketio.events 
+import app.socketio.events
 
 app = FastAPI(debug=True)
 
-app.include_router(api_router)
-
+# CORS liberado para desenvolvimento (todos os domínios)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["*"],  # permitir qualquer origem
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["*"],   # permitir todos os métodos (GET, POST, PUT, DELETE...)
+    allow_headers=["*"],   # permitir todos os headers
 )
 
+# Rotas da API
+app.include_router(api_router)
+
+# Arquivos estáticos
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.mount("/socket", socketio_app)
 
+# Custom OpenAPI com Bearer Auth
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
@@ -40,9 +44,7 @@ def custom_openapi():
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
-
 app.openapi = custom_openapi
-
 
 @app.get("/")
 def root():

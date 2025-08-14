@@ -57,7 +57,8 @@ def get_category(category_id: int, db: Session = Depends(get_db)):
     },
 )
 def create_category(
-    category_data: CategoryCreate = Depends(category_create_form),
+    # CORREÇÃO AQUI: Remova o 'Depends' para que o FastAPI leia o corpo JSON
+    category_data: CategoryCreate, 
     db: Session = Depends(get_db),
     user: User = Depends(is_admin),
 ):

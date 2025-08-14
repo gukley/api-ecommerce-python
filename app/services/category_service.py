@@ -11,6 +11,7 @@ class CategoryService:
     def get_all_categories(db: Session) -> list[Category]:
         return CategoryRepository.get_all_categories(db)
 
+
     @staticmethod
     def get_all_categories_by_user(db: Session, user_id: int) -> list[Category]:
         return CategoryRepository.get_all_categories_by_user(db, user_id)
