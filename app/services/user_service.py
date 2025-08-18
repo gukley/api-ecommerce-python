@@ -51,3 +51,14 @@ class UserService:
     @staticmethod
     def update_user_image(db: Session, current_user: User, user_image: UserImageUpdate) -> User:
         return UserRepository.update_user_image(db, current_user.id, user_image.image_path)
+    
+    @staticmethod
+    def get_user_summary(db: Session, current_user: User) -> dict:
+        # Exemplo: O ideal é consultar pedidos, favoritos, reviews, etc.
+        # Aqui, retorna valores de exemplo
+        return {
+            "totalPedidos": db.query(User).filter(User.id == current_user.id).count(),  # Exemplo genérico
+            "valorGasto": 0.0,  # Troque pela soma do valor dos pedidos
+            "favoritos": 0,     # Troque pela contagem dos favoritos do usuário
+            "reviews": 0        # Troque pela contagem dos reviews do usuário
+        }

@@ -17,24 +17,30 @@ from app.schemas.product_schema import ProductBase
 class OrderService:
     @staticmethod
     def create_order(db: Session, order_data: OrderCreate, user: User) -> Order:
-        cart = CartService.get_cart_items(db, user)
+        print("DEBUG: Entrou em create_order")
+        print("OrderCreate recebido:", order_data)
+        print("Itens recebidos:", getattr(order_data, "items", None))
 
-        if not cart.items:
+        if not order_data.items or len(order_data.items) == 0:
+            print("DEBUG: Nenhum item recebido no pedido")
             raise HTTPException(status_code=400, detail="Cart is empty")
-        
-        admin_id = ProductService.get_admin_id_by_product_id(db, cart.items[0].product_id)
 
-        order = OrderService.create_order_entry(db, order_data, user, cart.total_amount, admin_id)
+        try:
+            admin_id = ProductService.get_admin_id_by_product_id(db, order_data.items[0].product_id)
+            total_amount = order_data.total_amount
 
-        OrderService.create_order_items(db, order, cart.items)
-
-        CartService.clear_cart(db, user)
-
-        return order
+            order = OrderService.create_order_entry(db, order_data, user, total_amount, admin_id)
+            OrderService.create_order_items_from_payload(db, order, order_data.items)
+            CartService.clear_cart(db, user)
+            print("DEBUG: Pedido criado com sucesso")
+            return order
+        except Exception as e:
+            print("ERRO em create_order:", e)
+            raise HTTPException(status_code=500, detail=f"Erro interno ao criar pedido: {e}")
 
     @staticmethod
     def create_order_entry(
-        db: Session, order_data: OrderCreate, user: User, total_amount: float, admin_id: int
+        db: Session, order_data: OrderCreate, user: User, total_amount: Decimal, admin_id: int
     ) -> Order:
         address = AddressService.get_address_by_id(db, user, order_data.address_id)
         if not address:
@@ -46,19 +52,32 @@ class OrderService:
             total_amount = total_amount - (total_amount * coupon.discount_percentage / Decimal(100))
 
         order = Order(
-            **order_data.model_dump(),
             user_id=user.id,
+            admin_id=admin_id,
+            status=OrderStatus.PENDING,
             total_amount=total_amount,
-            admin_id=admin_id
+            address_id=order_data.address_id,
+            coupon_id=order_data.coupon_id,
         )
-        return OrderRepository.create_order(db, order)
+        try:
+            db.add(order)
+            db.commit()
+            db.refresh(order)
+        except IntegrityError:
+            db.rollback()
+            raise HTTPException(status_code=400, detail="Error creating order")
+        return order
 
     @staticmethod
-    def create_order_items(db: Session, order: Order, cart_items: list[CartItem]):
+    def create_order_items_from_payload(db: Session, order: Order, items: list):
         order_items = []
-
-        for item in cart_items:
-            ProductService.decrease_stock(db, item.product_id, item.quantity)
+        for item in items:
+            # Trate possíveis erros de estoque
+            try:
+                ProductService.decrease_stock(db, item.product_id, item.quantity)
+            except Exception as e:
+                print(f"Erro ao baixar estoque do produto {item.product_id}: {e}")
+                raise HTTPException(status_code=400, detail=f"Erro ao baixar estoque do produto {item.product_id}")
             order_items.append(
                 OrderItem(
                     order_id=order.id,
@@ -67,29 +86,24 @@ class OrderService:
                     unit_price=item.unit_price,
                 )
             )
-            
         OrderRepository.create_order_items(db, order_items)
 
     @staticmethod
     def get_orders_by_user(db: Session, user: User) -> list[OrderResponse]:
         orders = OrderRepository.get_orders_by_user(db, user.id)
-
         for order in orders:
             items = []
             for item in order.order_items:
                 items.append(ProductBase.model_validate(item.product.__dict__))
             order.products = items
-
         return orders
 
     @staticmethod
     def get_order_by_id(db: Session, order_id: int, user: User) -> OrderResponse:
         order = OrderRepository.get_order_by_id(db, order_id, user.id)
-        
         items = []
         for item in order.order_items:
             items.append(ProductBase.model_validate(item.product.__dict__))
-        
         return OrderResponse(id=order.id, order_date=order.order_date, address_id=order.address_id, status=order.status, products=items)
 
     @staticmethod
@@ -101,27 +115,23 @@ class OrderService:
     @staticmethod
     def cancel_order(db: Session, order_id: int, user: User):
         return OrderRepository.cancel_order(db, order_id, user.id)
-    
+
     @staticmethod
     def get_all_orders(db: Session) -> list[OrderResponse]:
         orders = OrderRepository.get_all_orders(db)
-
         for order in orders:
             items = []
             for item in order.order_items:
                 items.append(ProductBase.model_validate(item.product.__dict__))
             order.products = items
-
         return orders
 
     @staticmethod
     def get_all_orders_by_admin(db: Session, admin_id: int) -> list[OrderResponse]:
         orders = OrderRepository.get_all_orders_by_admin(db, admin_id)
-
         for order in orders:
             items = []
             for item in order.order_items:
                 items.append(ProductBase.model_validate(item.product.__dict__))
             order.products = items
-
         return orders

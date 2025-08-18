@@ -23,3 +23,6 @@ class User(Base):
     addresses = relationship("Address", back_populates="user", passive_deletes=True)
     orders = relationship("Order", back_populates="user", passive_deletes=True)
     cart = relationship("Cart", back_populates="user", uselist=False, passive_deletes=True)
+    favorites = relationship("Favorite", back_populates="user", passive_deletes=True)
+    reviews = relationship("Review", back_populates="user", passive_deletes=True)
+
