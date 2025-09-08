@@ -113,9 +113,45 @@ def cancel_order(
     description="Retorna uma lista contendo todos os pedidos cadastrados no sistema. Requer privilégios de moderador.",
     responses={401: {"description": "Não autorizado"} , 403: {"description": "Acesso negado"}},
 )
-def get_all_orders_by_admin(
+def get_orders_by_admin(
     admin_id: int,
     db: Session = Depends(get_db),
-    _: User = Depends(is_moderator),
+    current_user: User = Depends(get_current_user),
 ):
+    # Se o usuário for moderador, use admin_id para filtrar pedidos do admin principal
+    if current_user.admin_id and current_user.admin_id == admin_id:
+        admin_id = current_user.admin_id
+
     return OrderService.get_all_orders_by_admin(db, admin_id)
+
+@router.get(
+    "/user/{user_id}",
+    summary="Obter pedidos de um cliente específico",
+    response_model=list[dict],  # Ou crie um schema específico se quiser tipar melhor
+    description="Retorna todos os pedidos de um cliente, incluindo produtos.",
+)
+def get_orders_by_user_id(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    orders = OrderService.get_orders_by_user_id(db, user_id)
+    result = []
+    for order in orders:
+        products = []
+        for item in order.order_items:
+            products.append({
+                "id": item.product.id,
+                "name": item.product.name,
+                "quantity": item.quantity,
+                "price": float(item.unit_price),
+                "unit_price": float(item.unit_price)
+            })
+        result.append({
+            "id": order.id,
+            "status": order.status.value if hasattr(order.status, "value") else str(order.status),
+            "order_date": order.order_date.isoformat() if order.order_date else None,
+            "total": float(order.total_amount),
+            "products": products
+        })
+    return result

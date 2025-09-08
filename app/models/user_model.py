@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Enum
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database import Base
 import enum
@@ -19,10 +19,11 @@ class User(Base):
     password = Column(String(100), nullable=False)
     role = Column(Enum(UserRole), default=UserRole.CLIENT, nullable=False)
     image_path = Column(String(200), default="/uploads/defaults/no_profile_image.png", nullable=True)
+    admin_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     addresses = relationship("Address", back_populates="user", passive_deletes=True)
     orders = relationship("Order", back_populates="user", passive_deletes=True)
     cart = relationship("Cart", back_populates="user", uselist=False, passive_deletes=True)
     favorites = relationship("Favorite", back_populates="user", passive_deletes=True)
     reviews = relationship("Review", back_populates="user", passive_deletes=True)
-
+    admin = relationship("User", remote_side="User.id", backref="moderators")

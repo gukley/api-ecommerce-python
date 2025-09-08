@@ -1,32 +1,73 @@
 from pydantic import BaseModel, EmailStr
-from app.models.user_model import UserRole
-from typing import Optional
+from typing import List, Optional
 
+class UserResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    role: str
+    image_path: Optional[str] = None
+    admin_id: Optional[int] = None
 
-class UserBase(BaseModel):
+    class Config:
+        from_attributes = True
+
+class UserCreate(BaseModel):
     name: str
     email: EmailStr
-
-
-class UserCreate(UserBase):
     password: str
+    role: str = 'CLIENT'
 
-
-class UserCreateModerator(UserCreate):
-    role: Optional[UserRole] = UserRole.MODERATOR
-
+class UserCreateModerator(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+    role: str = 'MODERATOR'
 
 class UserUpdate(BaseModel):
-    name: Optional[str] = None
-    email: Optional[EmailStr] = None
+    name: Optional[str]
+    email: Optional[EmailStr]
+    password: Optional[str]
 
 class UserImageUpdate(BaseModel):
     image_path: Optional[str] = None
 
-class UserResponse(UserBase):
-    id: int
-    role: UserRole
-    image_path: Optional[str]
+class UserInDB(UserResponse):
+    hashed_password: str
 
-    class Config:
-        model_config = {"from_attributes": True}
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    id: int
+    email: str
+    role: str
+
+class UserSummary(BaseModel):
+    total_orders: int
+    total_spent: float
+    total_products: int
+    total_categories: int
+    total_favorites: int
+    total_reviews: int
+    total_addresses: int
+    role: str
+    image_path: Optional[str] = None
+
+class ModeratorResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    role: str
+    image_path: Optional[str] = None
+
+class ModeratorCreate(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+
+class ModeratorUpdate(BaseModel):
+    name: Optional[str]
+    email: Optional[EmailStr]
+    password: Optional[str]

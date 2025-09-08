@@ -4,7 +4,7 @@ from app.database import get_db
 from app.schemas.category_schema import CategoryCreate, CategoryResponse, CategoryUpdate, CategoryImageUpdate
 from app.services.category_service import CategoryService
 from app.models.user_model import User
-from app.dependencies.auth import is_admin
+from app.dependencies.auth import is_admin, get_current_user
 from app.dependencies.category_form import category_create_form, category_update_form
 
 
@@ -27,7 +27,13 @@ def get_categories(db: Session = Depends(get_db)):
     summary="Obter todas as categorias com base em um admin",
     description="Retorna uma lista contendo todas as categorias cadastradas por um admin especifico no sistema.",
 )
-def get_categories(user_id: int, db: Session = Depends(get_db)):
+def get_categories_by_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if current_user.admin_id and current_user.admin_id == user_id:
+        user_id = current_user.admin_id
     return CategoryService.get_all_categories_by_user(db, user_id)
 
 

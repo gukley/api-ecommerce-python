@@ -85,3 +85,5 @@ def delete_address(
     AddressService.delete_address(db, address_id, current_user)
     return
 
+# Nenhuma alteração necessária aqui, pois os schemas já incluem bairro e zip
+

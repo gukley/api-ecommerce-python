@@ -135,3 +135,7 @@ class OrderService:
                 items.append(ProductBase.model_validate(item.product.__dict__))
             order.products = items
         return orders
+
+    @staticmethod
+    def get_orders_by_user_id(db: Session, user_id: int):
+        return db.query(Order).filter(Order.user_id == user_id).all()

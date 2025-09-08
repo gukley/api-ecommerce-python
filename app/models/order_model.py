@@ -3,6 +3,7 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime
 import enum
+import pytz  
 
 
 class OrderStatus(enum.Enum):
@@ -11,6 +12,10 @@ class OrderStatus(enum.Enum):
     SHIPPED = "SHIPPED"
     COMPLETED = "COMPLETED"
     CANCELED = "CANCELED"
+
+
+def get_brazil_datetime():
+    return datetime.now(pytz.timezone("America/Sao_Paulo"))
 
 
 class Order(Base):
@@ -22,7 +27,7 @@ class Order(Base):
     )
     address_id = Column(Integer, ForeignKey("addresses.id"), nullable=False)
     coupon_id = Column(Integer, ForeignKey("coupons.id"), nullable=True)
-    order_date = Column(DateTime, nullable=False, default=datetime.utcnow)
+    order_date = Column(DateTime, nullable=False, default=get_brazil_datetime)
     status = Column(Enum(OrderStatus), default=OrderStatus.PENDING, nullable=False)
     total_amount = Column(DECIMAL(10, 2), nullable=False)
 

@@ -13,3 +13,4 @@ python-jose
 httpx
 python-multipart
 python-socketio[asgi]
+stripe

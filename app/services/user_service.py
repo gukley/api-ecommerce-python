@@ -45,7 +45,7 @@ class UserService:
             raise HTTPException(status_code=400, detail="Email already registered")
 
         user_data.password = hash_password(user_data.password)
-        user = User(**user_data.model_dump())
+        user = User(**user_data.model_dump(), admin_id=current_user.id)  # Salva o id do admin principal
         return UserRepository.create_user(db, user)
 
     @staticmethod
@@ -62,3 +62,7 @@ class UserService:
             "favoritos": 0,     # Troque pela contagem dos favoritos do usuário
             "reviews": 0        # Troque pela contagem dos reviews do usuário
         }
+    
+    @staticmethod
+    def get_moderators(db: Session):
+        return db.query(User).filter(User.role == UserRole.MODERATOR).all()

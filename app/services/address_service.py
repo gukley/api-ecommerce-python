@@ -21,6 +21,7 @@ class AddressService:
     ) -> Address:
         address = Address(**address_data.model_dump())
         address.user_id = current_user.id
+        # bairro já incluso via model_dump se vier do front
         return AddressRepository.create_address(db, address)
 
     @staticmethod
@@ -38,6 +39,7 @@ class AddressService:
             )
 
         updates = address_data.model_dump(exclude_unset=True)
+        # bairro já incluso via model_dump se vier do front
         return AddressRepository.update_address(db, address_id, updates)
 
     @staticmethod

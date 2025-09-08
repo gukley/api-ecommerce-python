@@ -13,6 +13,7 @@ from app.dependencies.auth import is_moderator, is_admin
 from app.repositories.category_repository import CategoryRepository
 from app.dependencies.product_form import product_create_form, product_update_form
 from app.models.user_model import User
+from app.core.middlewares.auth_middleware import get_current_user
 
 router = APIRouter()
 
@@ -33,7 +34,15 @@ def get_products(db: Session = Depends(get_db)):
     summary="Obter produtos por usuário",
     description="Retorna uma lista de produtos cadastrados por um usuário específico.",
 )
-def get_products_by_user(user_id: int, db: Session = Depends(get_db)):
+def get_products_by_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # Se o usuário for moderador, use admin_id para filtrar produtos do admin principal
+    if current_user.admin_id and current_user.admin_id == user_id:
+        user_id = current_user.admin_id
+
     return ProductService.get_all_products_by_user(db, user_id)
 
 

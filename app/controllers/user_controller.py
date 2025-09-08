@@ -14,11 +14,12 @@ router = APIRouter()
 
 @router.get(
     "/me",
-    response_model=UserResponse,
+    response_model=UserResponse,  # Certifique-se que UserResponse inclui admin_id
     summary="Obter dados do usuário autenticado",
     description="Retorna os dados do usuário atualmente autenticado.",
 )
 def get_me(current_user: UserResponse = Depends(get_current_user)):
+    # O campo admin_id será retornado automaticamente se estiver no schema UserResponse
     return current_user
 
 
@@ -126,3 +127,36 @@ def list_moderators(
     current_user: User = Depends(get_current_user),
 ):
     return UserService.get_moderators(db)
+
+@router.get(
+    "/admin/clients",
+    summary="Listar todos os clientes com endereços",
+    response_model=list[dict],  # Ou crie um schema específico se quiser tipar melhor
+    description="Retorna todos os clientes e seus endereços.",
+)
+def get_admin_clients(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # Filtra apenas clientes (role == 'CLIENT' ou equivalente)
+    clients = db.query(User).filter(User.role == "CLIENT").all()
+    result = []
+    for client in clients:
+        addresses = []
+        for addr in getattr(client, "addresses", []):
+            addresses.append({
+                "id": addr.id,
+                "street": addr.street,
+                "number": addr.number,
+                "neighborhood": addr.bairro,  # campo bairro
+                "city": addr.city,
+                "state": addr.state,
+                "cep": addr.zip
+            })
+        result.append({
+            "id": client.id,
+            "name": client.name,
+            "email": client.email,
+            "addresses": addresses
+        })
+    return result

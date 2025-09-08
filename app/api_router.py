@@ -9,6 +9,7 @@ from app.controllers.product_controller import router as product_router
 from app.controllers.cart_controller import router as cart_router
 from app.controllers.order_controller import router as order_router
 from app.controllers.tag_controller import router as tag_router
+from app.router.stripe_routes import router as stripe_router
 
 api_router = APIRouter()
 
@@ -22,3 +23,4 @@ api_router.include_router(discount_router, prefix="/discounts", tags=["Discounts
 api_router.include_router(coupon_router, prefix="/coupons", tags=["Coupons"])
 api_router.include_router(cart_router, prefix="/cart", tags=["Cart"])
 api_router.include_router(order_router, prefix="/orders", tags=["Orders"])
+api_router.include_router(stripe_router)
