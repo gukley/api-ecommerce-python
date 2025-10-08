@@ -14,3 +14,4 @@ httpx
 python-multipart
 python-socketio[asgi]
 stripe
+PyJWT>=2.0.0

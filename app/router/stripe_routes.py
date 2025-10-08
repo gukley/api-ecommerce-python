@@ -4,6 +4,12 @@ from pydantic import BaseModel, HttpUrl
 from typing import List, Optional
 import stripe
 from dotenv import load_dotenv
+from app.utils.email_utils import send_purchase_email
+from app.models.order_model import Order
+from app.repositories.order_repository import OrderRepository
+from app.models.user_model import User
+from sqlalchemy.orm import Session
+from app.database import get_db
 
 load_dotenv()
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
@@ -18,8 +24,8 @@ class item(BaseModel):
 
 class CheckoutPayload(BaseModel):
     items: List[item]
-    success_url: HttpUrl
-    cancel_url: HttpUrl
+    success_url: Optional[HttpUrl] = None
+    cancel_url: Optional[HttpUrl] = None
     email: Optional[str] = None
     metadata: Optional[dict] = None
 
@@ -66,15 +72,21 @@ async def stripe_webhook(request: Request):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    # --- Tratamento de eventos ---
     event_type = event["type"]
     data = event["data"]["object"]
 
     if event_type == "checkout.session.completed":
         order_id = data.get("metadata", {}).get("order_id")
+        user_email = data.get("customer_email")
         print(f"✅ Pedido {order_id} pago com sucesso (checkout.session.completed)")
-        # Aqui você pode atualizar no seu DB: status = "paid"
 
+        # Enviar e-mail de confirmação de compra
+        db: Session = next(get_db())
+        if order_id and user_email:
+            order = OrderRepository.get_order_by_id(db, int(order_id))
+            if order:
+                send_purchase_email(user_email, order)
+                
     elif event_type == "payment_intent.succeeded":
         print(f"💳 PaymentIntent {data['id']} confirmado")
 
@@ -85,3 +97,17 @@ async def stripe_webhook(request: Request):
         print(f"ℹ️ Evento recebido sem tratamento: {event_type}")
 
     return {"status": "success"}
+
+@router.post("/create-payment-intent")
+async def create_payment(payload: CheckoutPayload):
+    try:
+        amount = sum(int(round(it.amount * 100)) * (it.quantity or 1) for it in payload.items)
+        intent = stripe.PaymentIntent.create( 
+            amount=amount,
+            currency="brl",
+            metadata=payload.metadata or {},
+            receipt_email=payload.email,
+        )
+        return {"clientSecret": intent.client_secret}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))

@@ -11,7 +11,7 @@ app = FastAPI(debug=True)
 # CORS liberado para desenvolvimento (todos os domínios)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # permitir qualquer origem
+    allow_origins=["http://localhost:8001"],  
     allow_credentials=True,
     allow_methods=["*"],   # permitir todos os métodos (GET, POST, PUT, DELETE...)
     allow_headers=["*"],   # permitir todos os headers

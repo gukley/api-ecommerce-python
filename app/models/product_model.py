@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DECIMAL
+from sqlalchemy import Column, Integer, String, ForeignKey, DECIMAL, Text
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -14,7 +14,7 @@ class Product(Base):
     price = Column(DECIMAL(10, 2), nullable=False)
     stock = Column(Integer, nullable=False)
     image_path = Column(String(200), nullable=True)
-    description = Column(String(500), nullable=True)
+    description = Column(Text)  # e não String(500)
 
     category = relationship("Category", back_populates="products")
     cart_items = relationship("CartItem", back_populates="product", passive_deletes=True)
