@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime
 import enum
-import pytz  
+import pytz
 
 
 class OrderStatus(enum.Enum):
@@ -11,7 +11,7 @@ class OrderStatus(enum.Enum):
     PROCESSING = "PROCESSING"
     SHIPPED = "SHIPPED"
     COMPLETED = "COMPLETED"
-    CANCELED = "CANCELED"
+    CANCELLED = "CANCELLED"
 
 
 def get_brazil_datetime():

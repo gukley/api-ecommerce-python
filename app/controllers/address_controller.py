@@ -33,6 +33,7 @@ def get_address(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    # Certifique-se de que o address_id pertence ao usuário autenticado
     address = AddressService.get_address_by_id(db, current_user, address_id)
     if not address:
         raise HTTPException(status_code=404, detail="Endereço não encontrado")
@@ -82,6 +83,10 @@ def delete_address(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    # Verifique se o endereço está vinculado a algum pedido
+    from app.models.order_model import Order
+    if db.query(Order).filter(Order.address_id == address_id).first():
+        raise HTTPException(status_code=400, detail="Este endereço está vinculado a pedidos e não pode ser excluído.")
     AddressService.delete_address(db, address_id, current_user)
     return
 

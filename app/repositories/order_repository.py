@@ -3,7 +3,6 @@ from app.models.order_model import Order, OrderStatus
 from sqlalchemy.orm import joinedload
 from app.models.order_item_model import OrderItem
 
-
 class OrderRepository:
     @staticmethod
     def create_order(db: Session, order: Order) -> Order:
@@ -32,17 +31,29 @@ class OrderRepository:
 
     @staticmethod
     def update_order_status(
-        db: Session, order_id: int, new_status: str
+        db: Session, order_id: int, new_status: OrderStatus
     ) -> Order:
+        """
+        new_status should be an OrderStatus enum (service should convert/validate before calling).
+        """
         order = (
             db.query(Order)
             .filter(Order.id == order_id)
             .first()
         )
-        if order and order.status != OrderStatus.CANCELED:
+        if not order:
+            return None
+
+        # Only update if the new status is different
+        if order.status != new_status:
             order.status = new_status
-            db.commit()
-            db.refresh(order)
+            try:
+                db.add(order)
+                db.commit()
+                db.refresh(order)
+            except Exception:
+                db.rollback()
+                raise
         return order
 
     @staticmethod
@@ -57,12 +68,16 @@ class OrderRepository:
             order.status == OrderStatus.PENDING
             or order.status == OrderStatus.PROCESSING
         ):
-            order.status = "CANCELED"
+            order.status = OrderStatus.CANCELLED  # Use o Enum correto (CANCELLED)
             for item in order.order_items:
                 product = item.product
                 product.stock += item.quantity
-            db.commit()
-            db.refresh(order)
+            try:
+                db.commit()
+                db.refresh(order)
+            except Exception:
+                db.rollback()
+                raise
         return order
 
     @staticmethod
@@ -72,3 +87,7 @@ class OrderRepository:
     @staticmethod
     def get_all_orders_by_admin(db: Session, admin_id: int) -> list[Order]:
         return db.query(Order).options(joinedload(Order.order_items)).filter(Order.admin_id == admin_id).all()
+
+    @staticmethod
+    def get_order_items_by_order_id(db, order_id: int):
+        return db.query(OrderItem).filter(OrderItem.order_id == order_id).all()

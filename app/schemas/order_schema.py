@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, field_validator, ConfigDict, Field
 from typing import Optional, List
 from datetime import datetime
 from app.models.order_model import OrderStatus
@@ -31,11 +31,55 @@ class OrderCreate(OrderBase):
 class OrderUpdate(BaseModel):
     status: Optional[OrderStatus] = None
 
+    model_config = ConfigDict(from_attributes=True)
+
+    @field_validator('status', mode='before')
+    def normalize_status(cls, v):
+        if v is None:
+            return None
+        # If already an OrderStatus instance, return it
+        if isinstance(v, OrderStatus):
+            return v
+        s = str(v).strip().upper()
+        MAP = {
+            'CANCELED': 'CANCELLED',
+            'CANCELADO': 'CANCELLED',
+            'CANCELLED': 'CANCELLED',
+            'PENDENTE': 'PENDING',
+            'PENDING': 'PENDING',
+            'PROCESSANDO': 'PROCESSING',
+            'PROCESSING': 'PROCESSING',
+            'ENVIADO': 'SHIPPED',
+            'SHIPPED': 'SHIPPED',
+            'ENTREGUE': 'COMPLETED',
+            'COMPLETED': 'COMPLETED'
+        }
+        normalized = MAP.get(s, s)
+        try:
+            return OrderStatus(normalized)
+        except ValueError:
+            raise ValueError(f"Invalid status: {v}. Valores permitidos: {[m.value for m in OrderStatus]}")
+
+class ProductInfo(BaseModel):
+    id: int
+    name: str
+    image_path: Optional[str] = None  # pode ser None
+
+class OrderItemResponse(BaseModel):
+    product: ProductInfo
+    quantity: int
+    unit_price: float
+    total_price: float
+
 class OrderResponse(OrderBase):
     id: int
-    order_date: datetime
+    order_date: Optional[datetime] = None
     status: OrderStatus
-    products: Optional[list[ProductBase]] = None
+    items: Optional[List[OrderItemResponse]] = None
     user_id: int
+    total_amount: float
+
+    # Campo adicionado para compatibilidade com frontend antigo
+    products: Optional[List[ProductBase]] = None
 
     model_config = ConfigDict(from_attributes=True)

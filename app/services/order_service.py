@@ -3,7 +3,10 @@ from fastapi import HTTPException
 from app.repositories.order_repository import OrderRepository
 from app.models.order_model import Order, OrderStatus
 from app.models.order_item_model import OrderItem
-from app.schemas.order_schema import OrderCreate, OrderUpdate, OrderResponse
+from app.schemas.order_schema import (
+    OrderCreate, OrderUpdate, OrderResponse,
+    OrderItemResponse, ProductInfo
+)
 from app.models.user_model import User
 from app.services.cart_service import CartService
 from app.models.cart_item_model import CartItem
@@ -14,6 +17,7 @@ from app.services.product_service import ProductService
 from sqlalchemy.exc import IntegrityError
 from app.schemas.product_schema import ProductBase
 from app.utils.email_utils import send_purchase_email  # novo import
+
 
 class OrderService:
     @staticmethod
@@ -97,50 +101,187 @@ class OrderService:
     @staticmethod
     def get_orders_by_user(db: Session, user: User) -> list[OrderResponse]:
         orders = OrderRepository.get_orders_by_user(db, user.id)
+        result = []
         for order in orders:
+            # Popule products para compatibilidade com frontend antigo
+            products = []
+            for item in order.order_items:
+                products.append(ProductBase.model_validate(item.product.__dict__))
+            # Popule items para o novo padrão
             items = []
             for item in order.order_items:
-                items.append(ProductBase.model_validate(item.product.__dict__))
-            order.products = items
-        return orders
+                items.append(OrderItemResponse(
+                    product=ProductInfo(
+                        id=item.product.id,
+                        name=item.product.name,
+                        image_path=getattr(item.product, "image_path", None)
+                    ),
+                    quantity=item.quantity,
+                    unit_price=float(item.unit_price),
+                    total_price=float(item.unit_price) * item.quantity
+                ))
+            order_response = OrderResponse(
+                id=order.id,
+                order_date=order.order_date,
+                address_id=order.address_id,
+                coupon_id=order.coupon_id,
+                status=order.status,
+                items=items,
+                user_id=order.user_id,
+                total_amount=float(order.total_amount)
+            )
+            # Adicione products manualmente para compatibilidade
+            order_response.products = products
+            result.append(order_response)
+        return result
 
     @staticmethod
     def get_order_by_id(db: Session, order_id: int, user: User) -> OrderResponse:
         order = OrderRepository.get_order_by_id(db, order_id, user.id)
         items = []
         for item in order.order_items:
-            items.append(ProductBase.model_validate(item.product.__dict__))
-        return OrderResponse(id=order.id, order_date=order.order_date, address_id=order.address_id, status=order.status, products=items)
+            items.append(OrderItemResponse(
+                product=ProductInfo(
+                    id=item.product.id,
+                    name=item.product.name,
+                    image_path=getattr(item.product, "image_path", None)
+                ),
+                quantity=item.quantity,
+                unit_price=float(item.unit_price),
+                total_price=float(item.unit_price) * item.quantity
+            ))
+        return OrderResponse(
+            id=order.id,
+            order_date=order.order_date,
+            address_id=order.address_id,
+            coupon_id=order.coupon_id,
+            status=order.status,
+            items=items,
+            user_id=order.user_id,
+            total_amount=float(order.total_amount)
+        )
 
     @staticmethod
     def update_order_status(
-        db: Session, order_id: int, status: str
-    ) -> Order:
-        return OrderRepository.update_order_status(db, order_id, status)
+        db: Session, order_id: int, status
+        ) -> Order:
+        """
+        status may be an OrderStatus or a string. Normalize/validate here,
+        then call repository with an OrderStatus enum.
+        """
+        if status is None:
+            raise HTTPException(status_code=400, detail="Status é obrigatório")
+
+        # Normalize incoming status (accept enum instance or string variants)
+        if isinstance(status, OrderStatus):
+            status_enum = status
+        else:
+            s = str(status).strip().upper()
+            # common variant mappings
+            MAP = {
+                'CANCELED': 'CANCELLED',
+                'CANCELADO': 'CANCELLED',
+                'CANCELLED': 'CANCELLED',
+                'PENDENTE': 'PENDING',
+                'PENDING': 'PENDING',
+                'PROCESSANDO': 'PROCESSING',
+                'PROCESSING': 'PROCESSING',
+                'ENVIADO': 'SHIPPED',
+                'SHIPPED': 'SHIPPED',
+                'ENTREGUE': 'COMPLETED',
+                'COMPLETED': 'COMPLETED'
+            }
+            normalized = MAP.get(s, s)
+            try:
+                status_enum = OrderStatus(normalized)
+            except ValueError:
+                raise HTTPException(status_code=400, detail=f"Status inválido: {status}. Valores permitidos: {[m.value for m in OrderStatus]}")
+
+        try:
+            order = OrderRepository.update_order_status(db, order_id, status_enum)
+        except Exception as exc:
+            # Log upstream if you have a logger; here we convert to HTTPException
+            raise HTTPException(status_code=500, detail="Erro interno ao atualizar status do pedido")
+        if not order:
+            raise HTTPException(status_code=404, detail="Pedido não encontrado")
+        return order
 
     @staticmethod
     def cancel_order(db: Session, order_id: int, user: User):
-        return OrderRepository.cancel_order(db, order_id, user.id)
+        # Busca pedido garantindo que pertence ao usuário (OrderRepository.get_order_by_id espera user_id)
+        order = OrderRepository.get_order_by_id(db, order_id, user.id)
+        if not order:
+            raise HTTPException(status_code=404, detail="Pedido não encontrado")
+        # Só permite cancelar se estiver PENDING ou PROCESSING
+        if order.status not in (OrderStatus.PENDING, OrderStatus.PROCESSING):
+            raise HTTPException(status_code=400, detail="Somente pedidos pendentes ou em processamento podem ser cancelados")
+        try:
+            order.status = OrderStatus.CANCELLED  # use o membro do Enum que corresponde ao DB
+            db.add(order)
+            db.commit()
+            db.refresh(order)
+            return order
+        except Exception:
+            db.rollback()
+            raise HTTPException(status_code=500, detail="Erro interno ao cancelar pedido")
 
     @staticmethod
     def get_all_orders(db: Session) -> list[OrderResponse]:
         orders = OrderRepository.get_all_orders(db)
+        result = []
         for order in orders:
             items = []
             for item in order.order_items:
-                items.append(ProductBase.model_validate(item.product.__dict__))
-            order.products = items
-        return orders
+                items.append(OrderItemResponse(
+                    product=ProductInfo(
+                        id=item.product.id,
+                        name=item.product.name,
+                        image_path=getattr(item.product, "image_path", None)
+                    ),
+                    quantity=item.quantity,
+                    unit_price=float(item.unit_price),
+                    total_price=float(item.unit_price) * item.quantity
+                ))
+            result.append(OrderResponse(
+                id=order.id,
+                order_date=order.order_date,
+                address_id=order.address_id,
+                coupon_id=order.coupon_id,
+                status=order.status,
+                items=items,
+                user_id=order.user_id,
+                total_amount=float(order.total_amount)
+            ))
+        return result
 
     @staticmethod
     def get_all_orders_by_admin(db: Session, admin_id: int) -> list[OrderResponse]:
         orders = OrderRepository.get_all_orders_by_admin(db, admin_id)
+        result = []
         for order in orders:
             items = []
             for item in order.order_items:
-                items.append(ProductBase.model_validate(item.product.__dict__))
-            order.products = items
-        return orders
+                items.append(OrderItemResponse(
+                    product=ProductInfo(
+                        id=item.product.id,
+                        name=item.product.name,
+                        image_path=getattr(item.product, "image_path", None)
+                    ),
+                    quantity=item.quantity,
+                    unit_price=float(item.unit_price),
+                    total_price=float(item.unit_price) * item.quantity
+                ))
+            result.append(OrderResponse(
+                id=order.id,
+                order_date=order.order_date,
+                address_id=order.address_id,
+                coupon_id=order.coupon_id,
+                status=order.status,
+                items=items,
+                user_id=order.user_id,
+                total_amount=float(order.total_amount)
+            ))
+        return result
 
     @staticmethod
     def get_orders_by_user_id(db: Session, user_id: int):

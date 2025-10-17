@@ -7,6 +7,10 @@ from app.core.middlewares.auth_middleware import get_current_user
 from app.models.user_model import User
 from app.dependencies.auth import is_moderator
 from app.socketio.events import notify_new_order
+from app.models.order_model import Order
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -97,13 +101,21 @@ def update_order(
     description="Cancela um pedido específico com base no seu ID, desde que pertença ao usuário autenticado.",
     responses={404: {"description": "Pedido não encontrado"}},
 )
+
 def cancel_order(
     order_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    OrderService.cancel_order(db, order_id, current_user)
-    return
+    try:
+        OrderService.cancel_order(db, order_id, current_user)
+        return
+    except HTTPException:
+        # Re-lança erros HTTP intencionais (404, 403, 400)
+        raise
+    except Exception as exc:
+        logger.exception("Erro ao cancelar pedido %s para usuário %s: %s", order_id, getattr(current_user, "id", None), exc)
+        raise HTTPException(status_code=500, detail="Erro interno ao cancelar pedido")
 
 
 @router.get(
@@ -155,3 +167,40 @@ def get_orders_by_user_id(
             "products": products
         })
     return result
+
+@router.get(
+    "/orders/",
+    summary="Listar pedidos do usuário autenticado",
+    description="Retorna todos os pedidos do usuário atualmente autenticado.",
+    responses={
+        401: {"description": "Não autorizado"},
+        404: {"description": "Nenhum pedido encontrado"},
+    },
+)
+def get_user_orders(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # Busca os pedidos do usuário autenticado
+    orders = db.query(Order).filter(Order.user_id == current_user.id).all()
+    if not orders:
+        raise HTTPException(status_code=404, detail="Nenhum pedido encontrado")
+
+    # Retorna os pedidos
+    return [
+        {
+            "id": order.id,
+            "total_amount": order.total_amount,
+            "status": order.status.value if hasattr(order.status, "value") else order.status,
+            "order_date": order.order_date.isoformat() if order.order_date else None,
+            "items": [
+                {
+                    "product_id": item.product_id,
+                    "quantity": item.quantity,
+                    "unit_price": item.unit_price,
+                }
+                for item in order.order_items
+            ],
+        }
+        for order in orders
+    ]
