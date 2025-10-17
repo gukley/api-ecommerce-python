@@ -21,8 +21,14 @@ class CategoryUpdate(BaseModel):
 class CategoryImageUpdate(BaseModel):
     image_path: Optional[str] = None
 
-class CategoryResponse(CategoryBase):
-    id: int
-    user_id: int
 
-    model_config = ConfigDict(from_attributes=True)
+class CategoryResponse(BaseModel):
+    id: int
+    name: str
+    description: Optional[str] = None
+    image_path: Optional[str] = None
+    user_id: int
+    product_count: int = 0  # Novo campo
+
+    class Config:
+        orm_mode = True

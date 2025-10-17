@@ -1,20 +1,54 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from fastapi import HTTPException
 from app.repositories.category_repository import CategoryRepository
 from app.models.category_model import Category
 from app.schemas.category_schema import CategoryCreate, CategoryUpdate, CategoryImageUpdate
 from app.models.user_model import User
+from app.models.product_model import Product
 
 
 class CategoryService:
     @staticmethod
     def get_all_categories(db: Session) -> list[Category]:
-        return CategoryRepository.get_all_categories(db)
+        results = (
+            db.query(
+                Category,
+                func.count(Product.id).label("product_count")
+            )
+            .outerjoin(Product, Category.id == Product.category_id)
+            .group_by(Category.id)
+            .all()
+        )
+        # results é uma lista de tuplas (Category, product_count)
+        return [
+            {
+                **category.__dict__,
+                "product_count": product_count
+            }
+            for category, product_count in results
+        ]
 
 
     @staticmethod
     def get_all_categories_by_user(db: Session, user_id: int) -> list[Category]:
-        return CategoryRepository.get_all_categories_by_user(db, user_id)
+        results = (
+            db.query(
+                Category,
+                func.count(Product.id).label("product_count")
+            )
+            .outerjoin(Product, Category.id == Product.category_id)
+            .filter(Category.user_id == user_id)
+            .group_by(Category.id)
+            .all()
+        )
+        return [
+            {
+                **category.__dict__,
+                "product_count": product_count
+            }
+            for category, product_count in results
+        ]
 
     @staticmethod
     def get_category_by_id(db: Session, category_id: int) -> Category:

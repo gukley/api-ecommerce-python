@@ -18,7 +18,8 @@ router = APIRouter()
     description="Retorna uma lista contendo todas as categorias cadastradas no sistema.",
 )
 def get_categories(db: Session = Depends(get_db)):
-    return CategoryService.get_all_categories(db)
+    cats = CategoryService.get_all_categories(db)
+    return cats if cats is not None else []
 
 
 @router.get(
@@ -34,7 +35,8 @@ def get_categories_by_user(
 ):
     if current_user.admin_id and current_user.admin_id == user_id:
         user_id = current_user.admin_id
-    return CategoryService.get_all_categories_by_user(db, user_id)
+    cats = CategoryService.get_all_categories_by_user(db, user_id)
+    return cats if cats is not None else []
 
 
 @router.get(
