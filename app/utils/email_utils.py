@@ -24,7 +24,7 @@ def send_purchase_email(to_email, order):
 
     Endereço de entrega:
     {address.street if address else ''}, {address.number if address else ''}
-    {address.neighborhood if address else ''}
+    {address.bairro if address else ''}  
     {address.city if address else ''} - {address.state if address else ''}
     CEP: {address.zip if address else ''}
 
