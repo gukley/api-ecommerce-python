@@ -17,13 +17,24 @@ class UserService:
 
     @staticmethod
     def update_user(db: Session, current_user: User, user_data: UserUpdate) -> User:
+        # Pydantic v2: model_dump(exclude_unset=True) pega apenas campos enviados
         updates = user_data.model_dump(exclude_unset=True)
+
+        # Se não houver campos para atualizar, devolve o usuário atual (ou levante 400)
+        if not updates:
+            return current_user
+
+        # Se email for alterado, verificar duplicidade
         if "email" in updates and updates["email"] != current_user.email:
             existing_user = (
                 db.query(User).filter(User.email == updates["email"]).first()
             )
             if existing_user:
                 raise HTTPException(status_code=400, detail="Email already registered")
+
+        # Se senha foi fornecida, hashear antes de salvar
+        if "password" in updates and updates["password"]:
+            updates["password"] = hash_password(updates["password"])
 
         return UserRepository.update_user(db, current_user.id, updates)
 

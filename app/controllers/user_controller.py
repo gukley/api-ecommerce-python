@@ -7,6 +7,9 @@ from app.core.middlewares.auth_middleware import get_current_user
 from app.models.user_model import User
 from app.dependencies.user_image_form import user_image_form
 from pydantic import BaseModel
+from app.core.security import hash_password # Função para hashear senhas
+from app.services.token_service import create_reset_token, verify_reset_token
+from app.services.email_service import send_reset_email 
 
 
 router = APIRouter()
@@ -18,9 +21,16 @@ router = APIRouter()
     summary="Obter dados do usuário autenticado",
     description="Retorna os dados do usuário atualmente autenticado.",
 )
-def get_me(current_user: UserResponse = Depends(get_current_user)):
-    # O campo admin_id será retornado automaticamente se estiver no schema UserResponse
-    return current_user
+def get_me(current_user: User = Depends(get_current_user)):
+    # Converte o objeto User para UserResponse
+    return UserResponse(
+        id=current_user.id,
+        name=current_user.name,
+        email=current_user.email,
+        role=current_user.role.value if hasattr(current_user.role, "value") else current_user.role,
+        image_path=current_user.image_path,
+        admin_id=current_user.admin_id if current_user.admin_id is not None else None  # Garante que admin_id seja None ou inteiro
+    )
 
 
 @router.put(
@@ -66,7 +76,10 @@ def create_moderator(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return UserService.create_moderator(db, user_data, current_user)
+    created = UserService.create_moderator(db, user_data, current_user)
+    if not created:
+        raise HTTPException(status_code=500, detail="Erro ao criar moderador")
+    return created
 
 @router.put(
     "/image",
@@ -126,7 +139,8 @@ def list_moderators(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    return UserService.get_moderators(db)
+    mods = UserService.get_moderators(db)
+    return mods if mods else []  # Retorna lista vazia se não houver moderadores
 
 @router.get(
     "/admin/clients",
@@ -160,3 +174,74 @@ def get_admin_clients(
             "addresses": addresses
         })
     return result
+
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+@router.post(
+    "/forgot-password",
+    summary="Solicitar recuperação de senha",
+    description="Envia um e-mail de recuperação de senha para o usuário.",
+)
+def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    token = create_reset_token(user.id)
+    send_reset_email(user.email, token)
+    return {"detail": "E-mail de recuperação enviado"}
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+@router.post(
+    "/reset-password",
+    summary="Resetar senha do usuário",
+    description="Permite ao usuário redefinir sua senha usando o token enviado por e-mail.",
+)
+def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
+    user_id = verify_reset_token(data.token)
+    if not user_id:
+        raise HTTPException(status_code=400, detail="Token inválido ou expirado")
+    user = db.query(User).get(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    user.password = hash_password(data.new_password)
+    db.commit()
+    return {"detail": "Senha redefinida com sucesso"}
+
+# Observações e sugestões:
+
+# 1. Não há endpoint para deletar/modificar usuários por ID (apenas /me)
+#    - Para excluir um moderador (ou qualquer usuário) por ID, adicione um endpoint DELETE /users/{user_id}
+#    - O erro 404 ocorre porque esse endpoint não existe.
+
+# Exemplo de endpoint para deletar usuário por ID (apenas para admin):
+
+@router.delete(
+    "/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Excluir usuário por ID",
+    description="Exclui permanentemente um usuário pelo ID. Apenas administradores podem realizar essa operação.",
+    responses={
+        401: {"description": "Não autorizado"},
+        403: {"description": "Acesso negado"},
+        404: {"description": "Usuário não encontrado"},
+    },
+)
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # Corrija para comparar o valor do Enum, não chamar .upper()
+    role = getattr(current_user.role, "value", current_user.role)
+    if role != "ADMIN":
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+    db.delete(user)
+    db.commit()
+    return

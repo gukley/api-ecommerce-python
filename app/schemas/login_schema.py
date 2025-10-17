@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from app.schemas.user_schema import UserResponse
+from typing import Any, Dict, Optional
 
 
 class LoginRequest(BaseModel):
@@ -7,6 +7,17 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class UserResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    role: str
+    image_path: Optional[str] = None
+    admin_id: Optional[int] = None  # Permite que admin_id seja None
+
+
 class LoginResponse(BaseModel):
-    token: str
+    access_token: str
+    refresh_token: str  # Adicionado para incluir o refresh token
+    token_type: str
     user: UserResponse

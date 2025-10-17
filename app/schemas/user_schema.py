@@ -7,7 +7,7 @@ class UserResponse(BaseModel):
     email: str
     role: str
     image_path: Optional[str] = None
-    admin_id: Optional[int] = None
+    admin_id: Optional[int] = None  # Permite que admin_id seja None
 
     class Config:
         from_attributes = True
@@ -25,9 +25,10 @@ class UserCreateModerator(BaseModel):
     role: str = 'MODERATOR'
 
 class UserUpdate(BaseModel):
-    name: Optional[str]
-    email: Optional[EmailStr]
-    password: Optional[str]
+    # Tornar explicitamente opcionais com valor default None
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
 
 class UserImageUpdate(BaseModel):
     image_path: Optional[str] = None
@@ -68,6 +69,6 @@ class ModeratorCreate(BaseModel):
     password: str
 
 class ModeratorUpdate(BaseModel):
-    name: Optional[str]
-    email: Optional[EmailStr]
-    password: Optional[str]
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
