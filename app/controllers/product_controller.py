@@ -14,6 +14,7 @@ from app.repositories.category_repository import CategoryRepository
 from app.dependencies.product_form import product_create_form, product_update_form
 from app.models.user_model import User
 from app.core.middlewares.auth_middleware import get_current_user
+from app.models.product_model import Product
 
 router = APIRouter()
 
