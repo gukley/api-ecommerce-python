@@ -9,13 +9,17 @@ O objetivo principal deste back-end é fornecer uma **API robusta, escalável e 
 
 ## 📦 Tecnologias Utilizadas
 
-- **FastAPI** — Framework moderno e performático para APIs em Python  
-- **PostgreSQL** — Banco de dados relacional  
-- **Docker e Docker Compose** — Containerização da aplicação e do banco de dados  
-- **Uvicorn** — Servidor ASGI leve e rápido  
-- **Stripe API** — Integração para pagamentos online  
-- **Pydantic & SQLAlchemy** — Modelagem e validação de dados  
-- **Dev Containers (VSCode)** — Ambiente de desenvolvimento isolado e reprodutível  
+| Tecnologia                   | Função                                         |
+| ---------------------------- | ---------------------------------------------- |
+| **FastAPI**                  | Framework rápido e moderno para APIs em Python |
+| **SQLAlchemy**               | ORM para modelagem e manipulação do banco      |
+| **PostgreSQL**               | Banco de dados relacional                      |
+| **Pydantic**                 | Validação de dados e schemas                   |
+| **Stripe API**               | Integração para pagamentos online              |
+| **Docker & Docker Compose**  | Containerização da aplicação e banco           |
+| **Uvicorn**                  | Servidor ASGI                                  |
+| **Dev Containers (VS Code)** | Ambiente isolado e reproduzível                |
+ 
 
 ---
 
@@ -114,13 +118,39 @@ Caso queira usar PostgreSQL localmente, configure a variável DATABASE_URL no .e
  ┣ 📜 .env.example         → Exemplo de variáveis de ambiente
  ┗ 📜 README.md            → Documentação do projeto
 
-🧠 Observações
 
-. Este projeto foi originalmente baseado em um repositório público, mas recebeu diversas adaptações e melhorias:
-. Implementação de novas rotas e endpoints
-. Integração completa com Stripe
-. Ajustes de segurança e autenticação JWT
-. Refatorações para melhor desempenho e legibilidade do código
-. Todo o ambiente é containerizado, o que facilita o deploy e a execução em qualquer máquina.
+🧠 Melhorias Implementadas por Mim
 
+O projeto base recebeu diversas adaptações, ampliações e otimizações realizadas por mim ao longo do desenvolvimento, incluindo:
 
+✔️ Implementação de novas rotas e endpoints (usuários, produtos, categorias, pedidos, cupons, carrinho etc.)
+✔️ Lógica completa de carrinho, estoque, categorias e cupons
+✔️ Integração completa com Stripe (criação de sessão, callbacks, webhooks, validação de pagamento)
+✔️ Sistema de envio de e-mails via SMTP, incluindo:
+    • Confirmação de pedido realizado
+    • Recuperação e redefinição de senha
+✔️ Ajustes de segurança com autenticação JWT (tokens, refresh, permissões)
+✔️ Refatoração da camada de controllers para maior organização e legibilidade
+✔️ Padronização dos schemas (Pydantic) e regras de negócio
+✔️ Melhorias de performance em consultas SQL e carregamento de dados
+✔️ Ambiente Docker totalmente configurado (API + PostgreSQL + Dev Container)
+
+📄 Sobre o Projeto
+
+Este back-end integra diretamente ao GGTECH Front-end (Vue.js) e juntos compõem o TCC:
+
+“E-commerce GGTECH"
+
+O objetivo é demonstrar:
+
+Modelagem de sistemas
+
+Programação de APIs REST
+
+Boas práticas de arquitetura
+
+Segurança e autenticação
+
+Deploy em ambiente containerizado
+
+Integração com serviços externos (Stripe)
