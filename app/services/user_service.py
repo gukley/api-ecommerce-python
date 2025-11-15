@@ -77,3 +77,12 @@ class UserService:
     @staticmethod
     def get_moderators(db: Session):
         return db.query(User).filter(User.role == UserRole.MODERATOR).all()
+    
+    @staticmethod
+    def delete_user_by_id(db: Session, user_id: int) -> bool:
+        user = UserRepository.get_user_by_id(db, user_id)
+        if not user:
+             return False
+         
+        UserRepository.delete_user(db, user_id)
+        return True     

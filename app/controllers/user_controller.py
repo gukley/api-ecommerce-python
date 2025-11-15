@@ -238,3 +238,27 @@ def delete_user(
     db.delete(user)
     db.commit()
     return
+
+@router.delete(
+    "/{user_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Excluir usuário por ID",
+    description="Exclui permanentemente um usuário (moderador, cliente ou outro) pelo ID. Apenas administradores podem realizar essa operação.",
+)
+def delete_user_by_id(
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # Verifica permissão (ADMIN)
+    role = getattr(current_user.role, "value", current_user.role)
+    if role != "ADMIN":
+        raise HTTPException(status_code=403, detail="Acesso negado")
+
+    # Chama o service
+    deleted = UserService.delete_user_by_id(db, user_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Usuário não encontrado")
+
+    return
+

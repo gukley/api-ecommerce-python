@@ -18,7 +18,10 @@ class OrderRepository:
 
     @staticmethod
     def get_orders_by_user(db: Session, user_id: int) -> List[Order]:
-        return db.query(Order).options(joinedload(Order.order_items)).filter(Order.user_id == user_id).all()
+        return db.query(Order).options(
+            joinedload(Order.order_items).joinedload(OrderItem.product),
+            joinedload(Order.address)  # <- carregar address
+        ).filter(Order.user_id == user_id).all()
 
     @staticmethod
     def get_order_by_id(db: Session, order_id: int, user_id: Optional[int] = None) -> Optional[Order]:
@@ -84,11 +87,18 @@ class OrderRepository:
 
     @staticmethod
     def get_all_orders(db: Session) -> List[Order]:
-        return db.query(Order).options(joinedload(Order.order_items)).all()
+        return db.query(Order).options(
+            joinedload(Order.order_items).joinedload(OrderItem.product),
+            joinedload(Order.address)
+        ).all()
+    
     
     @staticmethod
     def get_all_orders_by_admin(db: Session, admin_id: int) -> List[Order]:
-        return db.query(Order).options(joinedload(Order.order_items)).filter(Order.admin_id == admin_id).all()
+        return db.query(Order).options(
+            joinedload(Order.order_items).joinedload(OrderItem.product),
+            joinedload(Order.address)
+        ).filter(Order.admin_id == admin_id).all()
 
     @staticmethod
     def get_order_items_by_order_id(db: Session, order_id: int):

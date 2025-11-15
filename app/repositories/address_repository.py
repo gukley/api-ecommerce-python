@@ -32,3 +32,7 @@ class AddressRepository:
     def delete_address(db: Session, address_id: int):
         db.query(Address).filter(Address.id == address_id).delete()
         db.commit()
+
+    @staticmethod
+    def get_address_by_id_any(db: Session, address_id: int) -> Address:
+        return db.query(Address).filter(Address.id == address_id).first()

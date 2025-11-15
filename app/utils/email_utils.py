@@ -85,7 +85,7 @@ def send_purchase_email(to_email, order):
             <p><strong>Número do pedido:</strong> {order.id}<br>
                <strong>Data:</strong> {order_date or '---'}<br>
                <strong>Valor total:</strong> R$ {order.total_amount:.2f}<br>
-               <strong>Forma de pagamento:</strong> {payment}
+               <strong>Forma de pagamento: Cartão de Crédito</strong>
             </p>
 
             <h4>📦 Itens do Pedido:</h4>

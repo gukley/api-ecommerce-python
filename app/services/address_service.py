@@ -6,6 +6,7 @@ from app.models.user_model import User
 from fastapi import HTTPException
 
 
+
 class AddressService:
     @staticmethod
     def get_addresses_by_user(db: Session, current_user: User) -> list[Address]:
@@ -14,6 +15,10 @@ class AddressService:
     @staticmethod
     def get_address_by_id(db: Session, current_user: User, address_id: int) -> Address:
         return AddressRepository.get_address_by_id(db, address_id, current_user.id)
+
+    @staticmethod
+    def get_address_any_user(db: Session, address_id: int) -> Address:
+        return AddressRepository.get_address_by_id_any(db, address_id)
 
     @staticmethod
     def create_address(

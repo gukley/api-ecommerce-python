@@ -38,7 +38,7 @@ class OrderService:
             OrderService.create_order_items_from_payload(db, order, order_data.items)
             CartService.clear_cart(db, user)
             # Popule endereço e itens no objeto order para o e-mail
-            order.address = AddressService.get_address_by_id(db, user, order_data.address_id)
+            order.address = AddressService.get_address_any_user(db, order.address_id)
             order.order_items = OrderRepository.get_order_items_by_order_id(db, order.id)
             # Se tiver método de pagamento, adicione: order.payment_method = ...
             send_purchase_email(user.email, order)  # Enviar e-mail ao usuário
