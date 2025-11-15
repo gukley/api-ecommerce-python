@@ -22,19 +22,21 @@ def get_categories(db: Session = Depends(get_db)):
     return cats if cats is not None else []
 
 
-@router.get(
-    "/user/{user_id}",
-    response_model=list[CategoryResponse],
-    summary="Obter todas as categorias com base em um admin",
-    description="Retorna uma lista contendo todas as categorias cadastradas por um admin especifico no sistema.",
-)
+@router.get("/user/{user_id}", response_model=list[CategoryResponse])
 def get_categories_by_user(
     user_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if current_user.admin_id and current_user.admin_id == user_id:
+    # Se for moderador, retorna categorias do admin associado
+    if current_user.role == "MODERATOR":
+        if not current_user.admin_id:
+            return []  # moderador sem admin vinculado
         user_id = current_user.admin_id
+    # Se for admin, mantém o filtro original
+    elif current_user.role == "ADMIN":
+        user_id = current_user.id
+    
     cats = CategoryService.get_all_categories_by_user(db, user_id)
     return cats if cats is not None else []
 
@@ -129,3 +131,5 @@ def update_user_image(
     _: User = Depends(is_admin),
 ):
     return CategoryService.update_category_image(db, category_id, category_image)
+
+

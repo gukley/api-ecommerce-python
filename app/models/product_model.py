@@ -20,5 +20,3 @@ class Product(Base):
     cart_items = relationship("CartItem", back_populates="product", passive_deletes=True)
     order_items = relationship("OrderItem", back_populates="product", passive_deletes=True)
     discounts = relationship("Discount", back_populates="product", passive_deletes=True)
-    tags = relationship("Tag", secondary="tag_products", viewonly=True)
-    tag_links = relationship("TagProduct", back_populates="product")

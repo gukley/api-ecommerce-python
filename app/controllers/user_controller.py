@@ -21,16 +21,9 @@ router = APIRouter()
     summary="Obter dados do usuário autenticado",
     description="Retorna os dados do usuário atualmente autenticado.",
 )
-def get_me(current_user: User = Depends(get_current_user)):
-    # Converte o objeto User para UserResponse
-    return UserResponse(
-        id=current_user.id,
-        name=current_user.name,
-        email=current_user.email,
-        role=current_user.role.value if hasattr(current_user.role, "value") else current_user.role,
-        image_path=current_user.image_path,
-        admin_id=current_user.admin_id if current_user.admin_id is not None else None  # Garante que admin_id seja None ou inteiro
-    )
+def get_me(current_user: UserResponse = Depends(get_current_user)):
+    # O campo admin_id será retornado automaticamente se estiver no schema UserResponse
+    return current_user
 
 
 @router.put(

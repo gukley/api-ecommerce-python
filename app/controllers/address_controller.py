@@ -5,6 +5,8 @@ from app.schemas.address_schema import AddressCreate, AddressResponse, AddressUp
 from app.services.address_service import AddressService
 from app.core.middlewares.auth_middleware import get_current_user
 from app.models.user_model import User
+import httpx
+import re
 
 router = APIRouter()
 
@@ -90,5 +92,36 @@ def delete_address(
     AddressService.delete_address(db, address_id, current_user)
     return
 
-# Nenhuma alteração necessária aqui, pois os schemas já incluem bairro e zip
+@router.get(
+    "/cep/{cep}",
+    summary="Buscar endereço pelo CEP",
+    description="Consulta a API do ViaCEP para retornar dados do endereço a partir de um CEP válido.",
+)
+async def get_address_by_cep(cep: str):
+    cep = re.sub(r"\D", "", cep)  # remove caracteres não numéricos
+
+    if len(cep) != 8:
+        raise HTTPException(status_code=400, detail="CEP inválido")
+
+    url = f"https://viacep.com.br/ws/{cep}/json/"
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, timeout=10.0)
+            data = response.json()
+
+        if "erro" in data:
+            raise HTTPException(status_code=404, detail="CEP não encontrado")
+
+        return {
+            "cep": data["cep"],
+            "logradouro": data["logradouro"],
+            "bairro": data["bairro"],
+            "cidade": data["localidade"],
+            "uf": data["uf"],
+        }
+
+    except httpx.RequestError:
+        raise HTTPException(status_code=500, detail="Erro ao consultar o serviço de CEP")
+
 

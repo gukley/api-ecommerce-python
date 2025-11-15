@@ -29,6 +29,6 @@ class CategoryResponse(BaseModel):
     image_path: Optional[str] = None
     user_id: int
     product_count: int = 0  # Novo campo
-
+    
     class Config:
         orm_mode = True

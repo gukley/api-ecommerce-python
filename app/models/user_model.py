@@ -1,14 +1,12 @@
-from sqlalchemy import Column, Integer, String, Enum, ForeignKey
+from sqlalchemy import Column, Integer, String, Enum, ForeignKey, Date
 from sqlalchemy.orm import relationship
 from app.database import Base
 import enum
-
 
 class UserRole(enum.Enum):
     CLIENT = "CLIENT"
     MODERATOR = "MODERATOR"
     ADMIN = "ADMIN"
-
 
 class User(Base):
     __tablename__ = "users"
@@ -20,6 +18,11 @@ class User(Base):
     role = Column(Enum(UserRole), default=UserRole.CLIENT, nullable=False)
     image_path = Column(String(200), default="/uploads/defaults/no_profile_image.png", nullable=True)
     admin_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    # Novos campos
+    cpf = Column(String(11), nullable=True, index=True)        # armazenar apenas dígitos
+    phone = Column(String(20), nullable=True)                  # formato E.164 (ex: +5511999998888)
+    birthdate = Column(Date, nullable=True)
 
     addresses = relationship("Address", back_populates="user", passive_deletes=True)
     orders = relationship("Order", back_populates="user", passive_deletes=True)

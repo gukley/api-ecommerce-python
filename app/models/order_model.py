@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, DECIMAL, ForeignKey, Enum, DateTime
+from sqlalchemy import Column, Integer, DECIMAL, ForeignKey, Enum, DateTime, String
 from sqlalchemy.orm import relationship
 from app.database import Base
 from datetime import datetime
@@ -8,10 +8,13 @@ import pytz
 
 class OrderStatus(enum.Enum):
     PENDING = "PENDING"
+    PAID = "PAID"
     PROCESSING = "PROCESSING"
     SHIPPED = "SHIPPED"
     COMPLETED = "COMPLETED"
     CANCELLED = "CANCELLED"
+    FAILED = "FAILED"
+    REFUNDED = "REFUNDED"
 
 
 def get_brazil_datetime():
@@ -32,6 +35,11 @@ class Order(Base):
     total_amount = Column(DECIMAL(10, 2), nullable=False)
 
     admin_id = Column(Integer, nullable=True)
+
+    # Novos campos opcionais para integração com Stripe / financeiro
+    payment_method = Column(String(64), nullable=True)  # ex: "card", "boleto", "pix"
+    stripe_payment_intent = Column(String(255), nullable=True)
+    stripe_session_id = Column(String(255), nullable=True)
 
     user = relationship("User", back_populates="orders")
     address = relationship("Address", back_populates="orders")

@@ -81,3 +81,5 @@ class CategoryService:
     @staticmethod
     def update_category_image(db: Session, category_id: int, category_image: CategoryImageUpdate) -> Category:
         return CategoryRepository.update_category_image(db, category_id, category_image.image_path)
+    
+

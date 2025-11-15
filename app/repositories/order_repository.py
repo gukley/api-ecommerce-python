@@ -1,6 +1,6 @@
-from sqlalchemy.orm import Session
+from typing import Optional, List
+from sqlalchemy.orm import Session, joinedload
 from app.models.order_model import Order, OrderStatus
-from sqlalchemy.orm import joinedload
 from app.models.order_item_model import OrderItem
 
 class OrderRepository:
@@ -17,22 +17,24 @@ class OrderRepository:
         db.commit()
 
     @staticmethod
-    def get_orders_by_user(db: Session, user_id: int) -> list[Order]:
+    def get_orders_by_user(db: Session, user_id: int) -> List[Order]:
         return db.query(Order).options(joinedload(Order.order_items)).filter(Order.user_id == user_id).all()
 
     @staticmethod
-    def get_order_by_id(db: Session, order_id: int, user_id: int) -> Order:
-        return (
-            db.query(Order)
-            .options(joinedload(Order.order_items))
-            .filter(Order.id == order_id, Order.user_id == user_id)
-            .first()
-        )
+    def get_order_by_id(db: Session, order_id: int, user_id: Optional[int] = None) -> Optional[Order]:
+        """
+        Busca pedido por id. Se user_id for informado filtra também pelo dono.
+        Isso mantém compatibilidade com chamadas que atualmente passam apenas order_id.
+        """
+        query = db.query(Order).options(joinedload(Order.order_items))
+        if user_id is None:
+            return query.filter(Order.id == order_id).first()
+        return query.filter(Order.id == order_id, Order.user_id == user_id).first()
 
     @staticmethod
     def update_order_status(
         db: Session, order_id: int, new_status: OrderStatus
-    ) -> Order:
+    ) -> Optional[Order]:
         """
         new_status should be an OrderStatus enum (service should convert/validate before calling).
         """
@@ -81,13 +83,13 @@ class OrderRepository:
         return order
 
     @staticmethod
-    def get_all_orders(db: Session) -> list[Order]:
+    def get_all_orders(db: Session) -> List[Order]:
         return db.query(Order).options(joinedload(Order.order_items)).all()
     
     @staticmethod
-    def get_all_orders_by_admin(db: Session, admin_id: int) -> list[Order]:
+    def get_all_orders_by_admin(db: Session, admin_id: int) -> List[Order]:
         return db.query(Order).options(joinedload(Order.order_items)).filter(Order.admin_id == admin_id).all()
 
     @staticmethod
-    def get_order_items_by_order_id(db, order_id: int):
+    def get_order_items_by_order_id(db: Session, order_id: int):
         return db.query(OrderItem).filter(OrderItem.order_id == order_id).all()
