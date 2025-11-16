@@ -1,5 +1,9 @@
+from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
+from decimal import Decimal
+from sqlalchemy.exc import IntegrityError
+
 from app.repositories.order_repository import OrderRepository
 from app.models.order_model import Order, OrderStatus
 from app.models.order_item_model import OrderItem
@@ -12,9 +16,7 @@ from app.services.cart_service import CartService
 from app.models.cart_item_model import CartItem
 from app.services.coupon_service import CouponService
 from app.services.address_service import AddressService
-from decimal import Decimal
 from app.services.product_service import ProductService
-from sqlalchemy.exc import IntegrityError
 from app.schemas.product_schema import ProductBase
 from app.utils.email_utils import send_purchase_email  # novo import
 
@@ -99,14 +101,35 @@ class OrderService:
         OrderRepository.create_order_items(db, order_items)
 
     @staticmethod
+    def _build_products_with_quantity(order) -> List[Dict[str, Any]]:
+        """
+        Build products list including quantity and unit_price so frontend shows correct quantities.
+        Each entry mirrors what the frontend expects: { id, product_id, name, image_path, quantity, unit_price, subtotal }
+        """
+        products: List[Dict[str, Any]] = []
+        for item in getattr(order, "order_items", []) or []:
+            prod = getattr(item, "product", None)
+            product_dict: Dict[str, Any] = {
+                "id": getattr(prod, "id", None),
+                "product_id": getattr(prod, "id", None),
+                "name": getattr(prod, "name", None),
+                "image_path": getattr(prod, "image_path", None),
+                "image_url": getattr(prod, "image_url", None),
+                "quantity": int(item.quantity) if item.quantity is not None else 1,
+                "unit_price": float(item.unit_price) if item.unit_price is not None else None,
+                "subtotal": float(item.unit_price) * int(item.quantity) if item.unit_price is not None else None
+            }
+            products.append(product_dict)
+        return products
+
+    @staticmethod
     def get_orders_by_user(db: Session, user: User) -> list[OrderResponse]:
         orders = OrderRepository.get_orders_by_user(db, user.id)
         result = []
         for order in orders:
-            # Popule products para compatibilidade com frontend antigo
-            products = []
-            for item in order.order_items:
-                products.append(ProductBase.model_validate(item.product.__dict__))
+            # Popule products para compatibilidade com frontend antigo, incluindo quantity/unit_price
+            products = OrderService._build_products_with_quantity(order)
+
             # Popule items para o novo padrão
             items = []
             for item in order.order_items:
@@ -130,14 +153,19 @@ class OrderService:
                 user_id=order.user_id,
                 total_amount=float(order.total_amount)
             )
-            # Adicione products manualmente para compatibilidade
+            # Adicione products manualmente para compatibilidade (com quantity e unit_price)
             order_response.products = products
             result.append(order_response)
         return result
 
     @staticmethod
     def get_order_by_id(db: Session, order_id: int, user: User) -> OrderResponse:
-        order = OrderRepository.get_order_by_id(db, order_id, user.id)
+        # Note: repository implementation may vary; adjust call if your repository expects different params
+        order = OrderRepository.get_order_by_id(db, order_id)
+        if not order:
+            raise HTTPException(status_code=404, detail="Pedido não encontrado")
+
+        # Build items
         items = []
         for item in order.order_items:
             items.append(OrderItemResponse(
@@ -150,7 +178,12 @@ class OrderService:
                 unit_price=float(item.unit_price),
                 total_price=float(item.unit_price) * item.quantity
             ))
-        return OrderResponse(
+
+        # Build products with quantity so frontend displays correct qty
+        products = OrderService._build_products_with_quantity(order)
+
+        # Return response (address handling kept as before in your flow)
+        order_response = OrderResponse(
             id=order.id,
             order_date=order.order_date,
             address_id=order.address_id,
@@ -160,6 +193,8 @@ class OrderService:
             user_id=order.user_id,
             total_amount=float(order.total_amount)
         )
+        order_response.products = products
+        return order_response
 
     @staticmethod
     def update_order_status(
@@ -208,15 +243,20 @@ class OrderService:
 
     @staticmethod
     def cancel_order(db: Session, order_id: int, user: User):
-        # Busca pedido garantindo que pertence ao usuário (OrderRepository.get_order_by_id espera user_id)
+        """
+        Cancela um pedido específico, garantindo que pertence ao usuário.
+        """
+        # Busca o pedido garantindo que pertence ao usuário autenticado
         order = OrderRepository.get_order_by_id(db, order_id, user.id)
         if not order:
             raise HTTPException(status_code=404, detail="Pedido não encontrado")
-        # Só permite cancelar se estiver PENDING ou PROCESSING
+
+        # Só permite cancelar se o status for PENDING ou PROCESSING
         if order.status not in (OrderStatus.PENDING, OrderStatus.PROCESSING):
             raise HTTPException(status_code=400, detail="Somente pedidos pendentes ou em processamento podem ser cancelados")
+
         try:
-            order.status = OrderStatus.CANCELLED  # use o membro do Enum que corresponde ao DB
+            order.status = OrderStatus.CANCELLED  # Atualiza o status para CANCELLED
             db.add(order)
             db.commit()
             db.refresh(order)
@@ -230,6 +270,7 @@ class OrderService:
         orders = OrderRepository.get_all_orders(db)
         result = []
         for order in orders:
+            products = OrderService._build_products_with_quantity(order)
             items = []
             for item in order.order_items:
                 items.append(OrderItemResponse(
@@ -242,7 +283,7 @@ class OrderService:
                     unit_price=float(item.unit_price),
                     total_price=float(item.unit_price) * item.quantity
                 ))
-            result.append(OrderResponse(
+            order_response = OrderResponse(
                 id=order.id,
                 order_date=order.order_date,
                 address_id=order.address_id,
@@ -251,7 +292,9 @@ class OrderService:
                 items=items,
                 user_id=order.user_id,
                 total_amount=float(order.total_amount)
-            ))
+            )
+            order_response.products = products
+            result.append(order_response)
         return result
 
     @staticmethod
@@ -259,6 +302,7 @@ class OrderService:
         orders = OrderRepository.get_all_orders_by_admin(db, admin_id)
         result = []
         for order in orders:
+            products = OrderService._build_products_with_quantity(order)
             items = []
             for item in order.order_items:
                 items.append(OrderItemResponse(
@@ -271,7 +315,7 @@ class OrderService:
                     unit_price=float(item.unit_price),
                     total_price=float(item.unit_price) * item.quantity
                 ))
-            result.append(OrderResponse(
+            order_response = OrderResponse(
                 id=order.id,
                 order_date=order.order_date,
                 address_id=order.address_id,
@@ -280,7 +324,9 @@ class OrderService:
                 items=items,
                 user_id=order.user_id,
                 total_amount=float(order.total_amount)
-            ))
+            )
+            order_response.products = products
+            result.append(order_response)
         return result
 
     @staticmethod

@@ -86,3 +86,13 @@ class UserService:
          
         UserRepository.delete_user(db, user_id)
         return True     
+    
+    @staticmethod
+    def delete_user_by_id(db: Session, user_id: int):
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            return False
+
+        db.delete(user)
+        db.commit()
+        return True

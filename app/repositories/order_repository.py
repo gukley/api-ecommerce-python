@@ -26,13 +26,17 @@ class OrderRepository:
     @staticmethod
     def get_order_by_id(db: Session, order_id: int, user_id: Optional[int] = None) -> Optional[Order]:
         """
-        Busca pedido por id. Se user_id for informado filtra também pelo dono.
-        Isso mantém compatibilidade com chamadas que atualmente passam apenas order_id.
+        Busca pedido por id. Se user_id for informado, filtra também pelo dono.
         """
-        query = db.query(Order).options(joinedload(Order.order_items))
-        if user_id is None:
-            return query.filter(Order.id == order_id).first()
-        return query.filter(Order.id == order_id, Order.user_id == user_id).first()
+        query = db.query(Order).options(
+            joinedload(Order.order_items).joinedload(OrderItem.product),
+            joinedload(Order.address)
+        )
+        if user_id:
+            query = query.filter(Order.id == order_id, Order.user_id == user_id)
+        else:
+            query = query.filter(Order.id == order_id)
+        return query.first()
 
     @staticmethod
     def update_order_status(
@@ -103,3 +107,13 @@ class OrderRepository:
     @staticmethod
     def get_order_items_by_order_id(db: Session, order_id: int):
         return db.query(OrderItem).filter(OrderItem.order_id == order_id).all()
+
+    @staticmethod
+    def get_all_orders_with_addresses(db: Session) -> List[Order]:
+        """
+        Retorna todos os pedidos, incluindo endereços e itens.
+        """
+        return db.query(Order).options(
+            joinedload(Order.order_items).joinedload(OrderItem.product),
+            joinedload(Order.address)  # Certifique-se de carregar o endereço
+        ).all()

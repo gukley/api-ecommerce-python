@@ -1,11 +1,25 @@
 from pydantic import BaseModel, field_validator, ConfigDict, Field
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from app.models.order_model import OrderStatus
 from app.schemas.product_schema import ProductBase
-from pydantic import ConfigDict
 from decimal import Decimal
 from typing_extensions import Annotated
+
+class AddressSchema(BaseModel):
+    id: int
+    user_id: Optional[int] = None
+    street: Optional[str] = None
+    number: Optional[int] = None  # Alterado de str para int
+    complement: Optional[str] = None
+    neighborhood: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    zip_code: Optional[str] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+
+    model_config = ConfigDict(from_attributes=True)
 
 class OrderItemBase(BaseModel):
     order_id: int
@@ -75,11 +89,17 @@ class OrderResponse(OrderBase):
     id: int
     order_date: Optional[datetime] = None
     status: OrderStatus
-    items: Optional[List[OrderItemResponse]] = None
+    # Garantir listas por padrão (evita null)
+    items: List[OrderItemResponse] = []
     user_id: int
     total_amount: float
 
-    # Campo adicionado para compatibilidade com frontend antigo
-    products: Optional[List[ProductBase]] = None
+    # Campo adicionado para compatibilidade com frontend antigo:
+    # aceitar lista de dicionários (possuindo keys: id, name, image_path, quantity, unit_price, etc.)
+    products: List[Dict[str, Any]] = []
+
+    # Incluir endereço completo (opcional) para que o frontend não precise
+    # fazer chamada separada a /addresses/{id}
+    address: Optional[AddressSchema] = None
 
     model_config = ConfigDict(from_attributes=True)
