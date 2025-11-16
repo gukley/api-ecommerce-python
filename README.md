@@ -94,7 +94,6 @@ uvicorn main:app --reload
 
 5. Acesse:
 . API: http://localhost:8000
-. Documentação Swagger: http://localhost:8000/docs
 
 ⚠️ Nesse modo, o banco de dados não é criado automaticamente.
 Caso queira usar PostgreSQL localmente, configure a variável DATABASE_URL no .env.
