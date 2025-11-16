@@ -71,7 +71,6 @@ Passos:
 Após a configuração:
 
 . API disponível em: http://localhost:8000
-. Documentação Swagger: http://localhost:8000/docs
 
 💻 Execução Local (sem Docker)
 
